@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta http-equiv="Permissions-Policy" content="camera=*">
+  <title>AR Menu – 3D Dish Try-On</title>
+
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold: #C9A84C;
+      --gold-light: #E8C97A;
+      --gold-dim: rgba(201,168,76,0.18);
+      --gold-border: rgba(201,168,76,0.28);
+      --ink: #0A0A0A;
+      --cream: #F5F0E8;
+      --glass-dark: rgba(6,5,4,0.72);
+      --radius: 14px;
+      --radius-pill: 100px;
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      font-family: 'Jost', sans-serif;
+      background: #060504;
+      overflow: hidden;
+      overscroll-behavior: none;
+      position: fixed;
+    }
+
+    .a-enter-vr-button { display: none !important; }
+
+    a-scene {
+      position: fixed !important; top: 0 !important; left: 0 !important;
+      width: 100% !important; height: 100% !important; z-index: 0 !important;
+    }
+    canvas.a-canvas {
+      width: 100% !important; height: 100% !important;
+      position: fixed !important; top: 0 !important; left: 0 !important;
+    }
+    video {
+      position: fixed !important; top: 0 !important; left: 0 !important;
+      width: 100% !important; height: 100% !important;
+      object-fit: cover !important; z-index: -1 !important;
+      -webkit-playsinline: true;
+      playsinline: true;
+    }
+
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 5; opacity: 0.6;
+    }
+
+    /* ── START SCREEN ── */
+    #startScreen {
+      position: fixed; inset: 0;
+      background: #060504;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 999; padding: 40px 32px;
+      transition: opacity 0.4s ease;
+    }
+    #startScreen::before, #startScreen::after {
+      content: '';
+      position: absolute;
+      width: 60px; height: 60px;
+      border-color: var(--gold-border);
+      border-style: solid;
+    }
+    #startScreen::before { top: 24px; left: 24px; border-width: 1px 0 0 1px; }
+    #startScreen::after  { bottom: 24px; right: 24px; border-width: 0 1px 1px 0; }
+
+    .start-inner {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 0;
+      max-width: 320px; width: 100%;
+    }
+    .start-ornament {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 28px;
+    }
+    .start-ornament-line {
+      width: 40px; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold));
+    }
+    .start-ornament-line.right {
+      background: linear-gradient(90deg, var(--gold), transparent);
+    }
+    .start-ornament-diamond {
+      width: 6px; height: 6px;
+      background: var(--gold);
+      transform: rotate(45deg);
+    }
+    #startScreen img.start-logo {
+      width: 72px; height: 72px;
+      object-fit: contain;
+      margin-bottom: 20px;
+      filter: brightness(0) invert(1) sepia(1) saturate(0.6);
+    }
+    .start-eyebrow {
+      font-size: 10px; font-weight: 400;
+      letter-spacing: 0.22em;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+    #startScreen h1 {
+      font-family: 'Cormorant Garamond', serif;
+      color: var(--cream);
+      font-size: 36px; font-weight: 300;
+      letter-spacing: 0.01em; line-height: 1.15;
+      text-align: center; margin-bottom: 20px;
+    }
+    #startScreen h1 em { font-style: italic; color: var(--gold-light); }
+    #startScreen p {
+      color: rgba(245,240,232,0.42);
+      font-size: 13px; font-weight: 300;
+      text-align: center; line-height: 1.75;
+      margin-bottom: 36px; letter-spacing: 0.03em;
+    }
+    #startBtn {
+      position: relative;
+      padding: 16px 42px;
+      font-family: 'Jost', sans-serif;
+      font-size: 12px; font-weight: 400;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      border: 1px solid var(--gold-border);
+      border-radius: var(--radius-pill);
+      background: transparent;
+      color: var(--gold-light);
+      cursor: pointer; overflow: hidden;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      transition: color 0.3s, border-color 0.3s;
+    }
+    #startBtn::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: var(--gold);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
+      z-index: -1;
+    }
+    #startBtn:active::before { transform: scaleX(1); }
+    #startBtn:active { color: var(--ink); border-color: var(--gold); }
+
+    .start-footer {
+      position: absolute; bottom: 36px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .start-footer span {
+      font-size: 10px; letter-spacing: 0.12em;
+      color: rgba(245,240,232,0.2); text-transform: uppercase;
+    }
+    .start-footer-dot {
+      width: 3px; height: 3px;
+      border-radius: 50%; background: var(--gold-border);
+    }
+
+    /* ── LOADING ── */
+    #loadingOverlay {
+      position: fixed; inset: 0;
+      background: #060504;
+      display: none; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 998; gap: 24px;
+    }
+    #loadingOverlay.show { display: flex; }
+
+    .loading-ring {
+      position: relative; width: 56px; height: 56px;
+    }
+    .loading-ring svg {
+      position: absolute; inset: 0;
+      animation: spin-slow 2.4s linear infinite;
+    }
+    .loading-ring-diamond {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .loading-ring-diamond::after {
+      content: '';
+      width: 8px; height: 8px;
+      background: var(--gold); transform: rotate(45deg);
+    }
+    #loadingStatus {
+      color: rgba(245,240,232,0.4);
+      font-size: 11px; letter-spacing: 0.2em;
+      text-transform: uppercase;
+      transition: opacity 0.3s;
+    }
+
+    @keyframes spin-slow { to { transform: rotate(360deg); } }
+    @keyframes spin      { to { transform: rotate(360deg); } }
+
+    /* ── MINI MODEL LOADER ── */
+    #modelLoader {
+      position: fixed; top: 56px; left: 50%;
+      transform: translateX(-50%);
+      background: var(--glass-dark);
+      backdrop-filter: blur(16px) saturate(1.4);
+      -webkit-backdrop-filter: blur(16px) saturate(1.4);
+      border: 1px solid var(--gold-border);
+      border-radius: var(--radius-pill);
+      padding: 7px 18px;
+      color: rgba(245,240,232,0.6);
+      font-size: 10px; letter-spacing: 0.14em;
+      text-transform: uppercase;
+      z-index: 300;
+      display: none; align-items: center; gap: 9px;
+    }
+    #modelLoader.show { display: flex; }
+    .mini-spin {
+      width: 11px; height: 11px;
+      border: 1.5px solid rgba(201,168,76,0.2);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    /* ── ERROR ── */
+    #errorOverlay {
+      position: fixed; inset: 0;
+      background: #060504;
+      display: none; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 998; gap: 16px; padding: 36px;
+      text-align: center;
+    }
+    #errorOverlay.show { display: flex; }
+    .err-icon-wrap {
+      width: 72px; height: 72px;
+      border: 1px solid rgba(255,107,107,0.25);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 30px; margin-bottom: 8px;
+    }
+    #errorOverlay h2 {
+      font-family: 'Cormorant Garamond', serif;
+      color: #ff8080; font-size: 22px; font-weight: 400;
+    }
+    #errorOverlay p {
+      color: rgba(245,240,232,0.4);
+      font-size: 13px; line-height: 1.8; font-weight: 300;
+      max-width: 300px;
+    }
+    #retryBtn {
+      margin-top: 8px; padding: 12px 28px;
+      font-family: 'Jost', sans-serif;
+      font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+      border: 1px solid var(--gold-border); border-radius: var(--radius-pill);
+      background: transparent; color: var(--gold);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    /* ── LOGO (in-AR) ── */
+    #logo {
+      position: fixed; top: 14px; left: 14px;
+      width: 72px; z-index: 200;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.5s ease;
+      filter: brightness(0) invert(1) sepia(1) saturate(0.5);
+    }
+
+    /* ── DISH LABEL ── */
+    #dishLabel {
+      position: fixed; top: 14px; left: 50%;
+      transform: translateX(-50%);
+      background: var(--glass-dark);
+      backdrop-filter: blur(16px) saturate(1.4);
+      -webkit-backdrop-filter: blur(16px) saturate(1.4);
+      border: 1px solid var(--gold-border);
+      border-radius: var(--radius-pill);
+      padding: 9px 22px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 15px; font-weight: 400;
+      color: var(--gold-light); letter-spacing: 0.06em;
+      white-space: nowrap; z-index: 200;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.5s ease;
+      max-width: calc(100vw - 200px);
+      overflow: hidden; text-overflow: ellipsis;
+    }
+    #dishLabel .label-dot {
+      display: inline-block;
+      width: 5px; height: 5px;
+      background: var(--gold); border-radius: 50%;
+      margin-right: 10px; vertical-align: middle;
+      position: relative; top: -1px;
+    }
+
+    /* ── CAROUSEL ── */
+    #dishCarousel {
+      position: fixed; bottom: 20px; left: 50%;
+      transform: translateX(-50%);
+      display: flex; gap: 6px; flex-wrap: nowrap;
+      overflow-x: auto;
+      max-width: calc(100vw - 20px);
+      padding: 10px 16px;
+      background: var(--glass-dark);
+      backdrop-filter: blur(20px) saturate(1.6);
+      -webkit-backdrop-filter: blur(20px) saturate(1.6);
+      border: 1px solid var(--gold-border);
+      border-radius: 60px;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      z-index: 150;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.5s ease;
+    }
+    #dishCarousel::-webkit-scrollbar { display: none; }
+
+    .dish-thumb {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 5px;
+      cursor: pointer; flex-shrink: 0;
+      padding: 4px 6px; border-radius: 50px;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      transition: background 0.25s;
+    }
+    .dish-thumb:active { transform: scale(0.92); }
+    .dish-thumb.active { background: var(--gold-dim); }
+
+    .thumb-img-wrap { position: relative; width: 50px; height: 50px; }
+    .dish-thumb img {
+      width: 50px; height: 50px;
+      object-fit: cover; border-radius: 50%;
+      border: 1.5px solid rgba(201,168,76,0.15);
+      transition: border-color 0.25s, transform 0.25s;
+      -webkit-user-drag: none;
+      user-select: none; pointer-events: none; display: block;
+    }
+    .dish-thumb.active img { border-color: var(--gold); transform: scale(1.06); }
+    .thumb-active-ring {
+      position: absolute; inset: -3px; border-radius: 50%;
+      border: 1px solid transparent; transition: border-color 0.25s;
+      pointer-events: none;
+    }
+    .dish-thumb.active .thumb-active-ring { border-color: rgba(201,168,76,0.35); }
+    .dish-thumb span {
+      font-size: 8.5px; font-weight: 400; letter-spacing: 0.05em;
+      color: rgba(245,240,232,0.4); text-align: center;
+      max-width: 58px; line-height: 1.3;
+      transition: color 0.25s; text-transform: uppercase;
+    }
+    .dish-thumb.active span { color: var(--gold); }
+
+    /* ── SCAN HINT ── */
+    #scanHint {
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex; flex-direction: column;
+      align-items: center; gap: 16px;
+      pointer-events: none; z-index: 10;
+      opacity: 0; transition: opacity 0.5s;
+    }
+    .scan-frame { position: relative; width: 180px; height: 180px; }
+    .scan-frame::before, .scan-frame::after,
+    .scan-corner-br, .scan-corner-bl {
+      content: '';
+      position: absolute;
+      width: 28px; height: 28px;
+      border-color: rgba(201,168,76,0.55);
+      border-style: solid;
+    }
+    .scan-frame::before { top: 0; left: 0; border-width: 1px 0 0 1px; }
+    .scan-frame::after  { top: 0; right: 0; border-width: 1px 1px 0 0; }
+    .scan-corner-br { bottom: 0; right: 0; border-width: 0 1px 1px 0; }
+    .scan-corner-bl { bottom: 0; left: 0; border-width: 0 0 1px 1px; }
+    .scan-line {
+      position: absolute; top: 0; left: 8px; right: 8px;
+      height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      animation: scanLine 2.4s ease-in-out infinite;
+    }
+    @keyframes scanLine {
+      0%, 100% { top: 8px; opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      50% { top: calc(100% - 8px); }
+    }
+    #scanHint p {
+      font-size: 11px; font-weight: 400;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: rgba(245,240,232,0.45);
+    }
+
+    /* ══════════════════════════════════════
+       SWIPE GESTURE LAYER
+    ══════════════════════════════════════ */
+
+    /* Full-screen invisible swipe zone sitting above AR but below UI chrome */
+    #swipeZone {
+      position: fixed; inset: 0;
+      z-index: 100;
+      touch-action: pan-y; /* allow vertical scroll but we capture horizontal */
+      -webkit-tap-highlight-color: transparent;
+      pointer-events: none; /* enabled after AR starts */
+    }
+    #swipeZone.active { pointer-events: auto; }
+
+    /* Swipe arrow hints — appear briefly on first swipe interaction */
+    #swipeHint {
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex; align-items: center; gap: 24px;
+      pointer-events: none; z-index: 200;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+    #swipeHint.show { opacity: 1; }
+    #swipeHint.fade { opacity: 0; }
+
+    .swipe-arrow {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 6px;
+    }
+    .swipe-arrow-icon {
+      width: 44px; height: 44px;
+      border: 1px solid var(--gold-border);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--glass-dark);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .swipe-arrow-icon svg {
+      width: 18px; height: 18px;
+      stroke: var(--gold); fill: none;
+      stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;
+    }
+    .swipe-arrow span {
+      font-size: 9px; letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(245,240,232,0.4);
+    }
+
+    /* Dish counter pill — shows "2 / 4" */
+    #dishCounter {
+      position: fixed; top: 54px; left: 50%;
+      transform: translateX(-50%);
+      background: var(--glass-dark);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--gold-border);
+      border-radius: var(--radius-pill);
+      padding: 5px 16px;
+      display: flex; align-items: center; gap: 8px;
+      z-index: 200;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+    #dishCounter.visible { opacity: 1; }
+
+    .counter-dot {
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: rgba(201,168,76,0.25);
+      transition: background 0.25s, transform 0.25s;
+      flex-shrink: 0;
+    }
+    .counter-dot.active {
+      background: var(--gold);
+      transform: scale(1.4);
+    }
+
+    /* Swipe direction flash — brief directional overlay on swipe */
+    #swipeFlash {
+      position: fixed; inset: 0;
+      pointer-events: none; z-index: 99;
+      opacity: 0;
+    }
+    #swipeFlash.left  { background: linear-gradient(to right, rgba(201,168,76,0.06), transparent); }
+    #swipeFlash.right { background: linear-gradient(to left,  rgba(201,168,76,0.06), transparent); }
+
+    @keyframes flashFade {
+      0%   { opacity: 1; }
+      100% { opacity: 0; }
+    }
+    #swipeFlash.flash { animation: flashFade 0.35s ease-out forwards; }
+
+    /* ══════════════════════════════════════
+       SEE ON TABLE BUTTON
+    ══════════════════════════════════════ */
+    #tableBtn {
+      position: fixed;
+      bottom: 108px;             /* sits just above carousel */
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 160;
+      display: flex; align-items: center; gap: 9px;
+      padding: 11px 22px;
+      font-family: 'Jost', sans-serif;
+      font-size: 11px; font-weight: 400;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      border: 1px solid var(--gold-border);
+      border-radius: var(--radius-pill);
+      background: var(--glass-dark);
+      backdrop-filter: blur(18px) saturate(1.5);
+      -webkit-backdrop-filter: blur(18px) saturate(1.5);
+      color: var(--gold-light);
+      cursor: pointer;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.4s ease, background 0.25s, color 0.25s, border-color 0.25s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      white-space: nowrap;
+    }
+    #tableBtn.visible        { opacity: 1; pointer-events: auto; }
+    #tableBtn.table-active   {
+      background: rgba(201,168,76,0.15);
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+    #tableBtn svg {
+      width: 15px; height: 15px;
+      stroke: currentColor; fill: none;
+      stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round;
+      flex-shrink: 0;
+      transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    #tableBtn.table-active svg { transform: scale(1.2) rotate(-10deg); }
+
+    /* Ripple-drop entrance animation for table mode */
+    @keyframes dropIn {
+      0%   { opacity: 0; transform: translateY(-18px) scale(0.88); }
+      60%  { opacity: 1; transform: translateY(4px)  scale(1.03); }
+      100% { opacity: 1; transform: translateY(0)    scale(1); }
+    }
+    /* Table mode badge shown top-right when active */
+    #tableBadge {
+      position: fixed; top: 14px; right: 14px;
+      z-index: 200;
+      display: flex; align-items: center; gap: 7px;
+      padding: 7px 14px;
+      background: var(--glass-dark);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--gold-border);
+      border-radius: var(--radius-pill);
+      font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--gold);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.35s ease;
+    }
+    #tableBadge.visible { opacity: 1; }
+    .badge-pulse {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--gold);
+      animation: pulse 1.8s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1;   transform: scale(1);   }
+      50%       { opacity: 0.4; transform: scale(0.7); }
+    }
+
+    /* Table surface shadow ring — gives depth illusion under the floating dish */
+    #tableShadow {
+      position: fixed;
+      bottom: 28%;   /* roughly where the dish base sits */
+      left: 50%;
+      transform: translateX(-50%);
+      width: 140px; height: 28px;
+      background: radial-gradient(ellipse, rgba(0,0,0,0.38) 0%, transparent 72%);
+      border-radius: 50%;
+      pointer-events: none; z-index: 1;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+    #tableShadow.visible { opacity: 1; }
+
+    /* ── iOS safe area ── */
+    @supports (padding-bottom: env(safe-area-inset-bottom)) {
+      #dishCarousel { bottom: calc(20px + env(safe-area-inset-bottom)); }
+      #tableBtn     { bottom: calc(108px + env(safe-area-inset-bottom)); }
+    }
+
+    @media (max-width: 390px) {
+      .dish-thumb img { width: 42px; height: 42px; }
+      .thumb-img-wrap { width: 42px; height: 42px; }
+      #startScreen h1 { font-size: 30px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══ START SCREEN ══ -->
+  <div id="startScreen">
+    <div class="start-inner">
+      <img class="start-logo" src="logo1.png" onerror="this.style.display='none'" alt="Logo">
+      <p class="start-eyebrow">Augmented Reality Experience</p>
+      <div class="start-ornament">
+        <div class="start-ornament-line"></div>
+        <div class="start-ornament-diamond"></div>
+        <div class="start-ornament-line right"></div>
+      </div>
+      <h1>Explore the<br>flavours of <em>Japan</em></h1>
+      <p>Point your camera at the menu card to see every dish rendered in stunning 3D, right at your table.</p>
+      <button id="startBtn">Activate Camera</button>
+    </div>
+    <div class="start-footer">
+      <span>Powered by AR</span>
+      <div class="start-footer-dot"></div>
+      <span>3D Preview</span>
+      <div class="start-footer-dot"></div>
+      <span>Live Tracking</span>
+    </div>
+  </div>
+
+  <!-- ══ LOADING ══ -->
+  <div id="loadingOverlay">
+    <div class="loading-ring">
+      <svg viewBox="0 0 56 56" width="56" height="56" fill="none">
+        <circle cx="28" cy="28" r="24" stroke="rgba(201,168,76,0.12)" stroke-width="1"/>
+        <path d="M28 4 A24 24 0 0 1 52 28" stroke="#C9A84C" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <div class="loading-ring-diamond"></div>
+    </div>
+    <p id="loadingStatus">Starting camera</p>
+  </div>
+
+  <!-- ══ MINI MODEL LOADER ══ -->
+  <div id="modelLoader">
+    <div class="mini-spin"></div>
+    <span>Loading dish</span>
+  </div>
+
+  <!-- ══ ERROR ══ -->
+  <div id="errorOverlay">
+    <div class="err-icon-wrap">📵</div>
+    <h2>Camera Access Denied</h2>
+    <p>
+      Please allow camera access in your browser settings and try again.<br><br>
+      <strong style="color:rgba(245,240,232,0.6)">iPhone:</strong> Settings → Safari → Camera → Allow<br>
+      <strong style="color:rgba(245,240,232,0.6)">Android:</strong> Settings → Apps → Browser → Camera → Allow
+    </p>
+    <button id="retryBtn">Retry</button>
+  </div>
+
+  <!-- ══ IN-AR CHROME ══ -->
+  <img src="logo1.png" id="logo" alt="Logo">
+
+  <div id="dishLabel">
+    <span class="label-dot"></span>
+    <span id="dishLabelText">Agedashi Tofu</span>
+  </div>
+
+  <!-- ══ DISH COUNTER DOTS ══ -->
+  <div id="dishCounter"></div>
+
+  <!-- ══ SWIPE HINT (shown once on AR start) ══ -->
+  <div id="swipeHint">
+    <div class="swipe-arrow">
+      <div class="swipe-arrow-icon">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <span>Prev</span>
+    </div>
+    <div class="swipe-arrow">
+      <div class="swipe-arrow-icon">
+        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+      <span>Next</span>
+    </div>
+  </div>
+
+  <!-- ══ SWIPE FLASH ══ -->
+  <div id="swipeFlash"></div>
+
+  <!-- ══ SWIPE ZONE (invisible, above AR) ══ -->
+  <div id="swipeZone"></div>
+
+  <!-- ══ SEE ON TABLE BUTTON ══ -->
+  <button id="tableBtn" aria-label="See on table">
+    <svg viewBox="0 0 24 24">
+      <path d="M3 17 Q12 13 21 17"/>
+      <line x1="8"  y1="17" x2="7"  y2="21"/>
+      <line x1="16" y1="17" x2="17" y2="21"/>
+      <path d="M8 10 Q12 7 16 10"/>
+      <ellipse cx="12" cy="10.5" rx="4" ry="1.5"/>
+    </svg>
+    <span id="tableBtnText">See on Table</span>
+  </button>
+
+  <!-- ══ TABLE MODE BADGE ══ -->
+  <div id="tableBadge">
+    <div class="badge-pulse"></div>
+    <span>Table View</span>
+  </div>
+
+  <!-- ══ TABLE SHADOW (depth illusion) ══ -->
+  <div id="tableShadow"></div>
+
+  <!-- ══ SCAN HINT ══ -->
+  <div id="scanHint">
+    <div class="scan-frame">
+      <div class="scan-line"></div>
+      <div class="scan-corner-br"></div>
+      <div class="scan-corner-bl"></div>
+    </div>
+    <p>Point at menu card</p>
+  </div>
+
+  <!-- ══ CAROUSEL ══ -->
+  <div id="dishCarousel"></div>
+
+  <a-scene
+    id="arScene"
+    mindar-image="imageTargetSrc: ./targets/card.mind;
+                  filterMinCF: 0.1;
+                  filterBeta: 10;
+                  missTolerance: 10;
+                  warmupTolerance: 2;
+                  maxTrack: 1;
+                  uiLoading: no;
+                  uiError: no;
+                  uiScanning: no"
+    renderer="colorManagement: true;
+              antialias: false;
+              logarithmicDepthBuffer: false;
+              precision: mediump;
+              physicallyCorrectLights: true"
+    loading-screen="enabled: false"
+    vr-mode-ui="enabled: false"
+    xr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: false"
+    style="display:none;">
+
+    <a-assets timeout="30000">
+      <a-asset-item id="preload0" src="3d-model/KaramisoRamen/KaramisoRamen.glb"></a-asset-item>
+    </a-assets>
+
+    <a-light type="ambient"     color="#ffffff" intensity="1.8"></a-light>
+    <a-light type="directional" color="#ffffff" intensity="1.6"  position="1 3 2"></a-light>
+    <a-light type="directional" color="#ffe9c0" intensity="1.0"  position="-2 2 -1"></a-light>
+    <a-light type="directional" color="#cce8ff" intensity="0.6"  position="0 -1 2"></a-light>
+    <a-light type="point"       color="#fff5e0" intensity="1.2"  position="0 1.5 1" distance="4" decay="2"></a-light>
+
+    <a-camera position="0 0 0" look-controls="enabled: false">
+      <!--
+        Fixed entity locked to camera — always at this screen-space position.
+        x=0      → horizontally centred
+        y=-0.55  → slightly below eye line (table surface feel)
+        z=-1.4   → ~1.4 m in front of camera (comfortable floating preview)
+        Hidden by default; shown only in table mode.
+      -->
+      <a-entity
+        id="tableEntity"
+        position="0 -0.55 -1.4"
+        rotation="0 0 0"
+        scale="1 1 1"
+        gltf-model=""
+        visible="false">
+      </a-entity>
+    </a-camera>
+
+    <a-entity id="target1" mindar-image-target="targetIndex: 0">
+      <a-entity
+        id="modelEntity"
+        position="0 0 0"
+        rotation="0 0 0"
+        scale="1 1 1"
+        gltf-model="">
+      </a-entity>
+    </a-entity>
+  </a-scene>
+
+  <script>
+    /* ══════════════════════════════════════
+       DISH DATA
+    ══════════════════════════════════════ */
+    const dishes = [
+      { name: "mangopetaltower",     folder: "mangopetaltower",    model: "mangopetaltower.glb",    thumb: "mangopetaltower.png",    scale: "1.5 1.5 1.5",     rotation: "90 90 90" },
+      { name: "almondcrustedcrispy", folder: "almondcrustedcrispy",model: "almondcrustedcrispy.glb",thumb: "almondcrustedcrispy.png",     scale: "1.5 1.5 1.5", rotation: "90 90 90" },
+      { name: "crispyvegetable",     folder: "crispyvegetable",    model: "crispyvegetable.glb",    thumb: "crispyvegetable.png",    scale: "1.5 1.5 1.5",     rotation: "90 90 90" },
+      { name: "cheesyquiche",        folder: "cheesyquiche",       model: "cheesyquiche.glb",       thumb: "cheesyquiche.png",     scale: "1.5 1.5 1.5", rotation: "90 90 90" },
+    ];
+
+    let currentIndex   = -1;
+    let arStarted      = false;
+    let modelTimeout   = null;
+    let swipeHintShown = false;
+    let tableModeOn    = false;   // tracks See-on-Table state
+
+    const tableEntity    = document.querySelector('#tableEntity');
+    const tableBtn       = document.querySelector('#tableBtn');
+    const tableBtnText   = document.querySelector('#tableBtnText');
+    const tableBadge     = document.querySelector('#tableBadge');
+    const tableShadow    = document.querySelector('#tableShadow');
+    const modelEntity    = document.querySelector('#modelEntity');
+    const dishLabel      = document.querySelector('#dishLabel');
+    const dishLabelText  = document.querySelector('#dishLabelText');
+    const carousel       = document.querySelector('#dishCarousel');
+    const logo           = document.querySelector('#logo');
+    const scanHint       = document.querySelector('#scanHint');
+    const target         = document.querySelector('#target1');
+    const arScene        = document.querySelector('#arScene');
+    const startScreen    = document.querySelector('#startScreen');
+    const loadingOverlay = document.querySelector('#loadingOverlay');
+    const loadingStatus  = document.querySelector('#loadingStatus');
+    const errorOverlay   = document.querySelector('#errorOverlay');
+    const modelLoader    = document.querySelector('#modelLoader');
+    const swipeZone      = document.querySelector('#swipeZone');
+    const swipeHint      = document.querySelector('#swipeHint');
+    const swipeFlash     = document.querySelector('#swipeFlash');
+    const dishCounter    = document.querySelector('#dishCounter');
+
+    const alwaysVisible = [carousel, logo, dishCounter, tableBtn];
+    const markerEls     = [dishLabel];
+
+    /* ── BUILD CAROUSEL ── */
+    dishes.forEach((dish, i) => {
+      const thumb = document.createElement('div');
+      thumb.className = 'dish-thumb' + (i === 0 ? ' active' : '');
+      thumb.innerHTML = `
+        <div class="thumb-img-wrap">
+          <img src="3d-model/${dish.folder}/${dish.thumb}"
+               onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2250%22 height=%2250%22%3E%3Crect width=%2250%22 height=%2250%22 rx=%2225%22 fill=%22%231a1510%22/%3E%3C/svg%3E'"
+               alt="${dish.name}" draggable="false">
+          <div class="thumb-active-ring"></div>
+        </div>
+        <span>${dish.name}</span>
+      `;
+      thumb.addEventListener('click', () => selectDish(i));
+      thumb.addEventListener('touchend', (e) => { e.preventDefault(); selectDish(i); });
+      carousel.appendChild(thumb);
+    });
+
+    /* ── BUILD COUNTER DOTS ── */
+    dishes.forEach((_, i) => {
+      const dot = document.createElement('div');
+      dot.className = 'counter-dot' + (i === 0 ? ' active' : '');
+      dot.dataset.index = i;
+      dishCounter.appendChild(dot);
+    });
+
+    function updateCounterDots(index) {
+      document.querySelectorAll('.counter-dot').forEach((dot, i) => {
+        dot.classList.toggle('active', i === index);
+      });
+    }
+
+    /* ── SELECT DISH ── */
+    function selectDish(index) {
+      if (index === currentIndex) return;
+      currentIndex = index;
+      const dish = dishes[index];
+
+      if (modelTimeout) { clearTimeout(modelTimeout); modelTimeout = null; }
+
+      modelLoader.classList.add('show');
+      modelEntity.removeAttribute('gltf-model');
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          modelEntity.setAttribute('gltf-model', `3d-model/${dish.folder}/${dish.model}`);
+          modelEntity.setAttribute('scale',    dish.scale);
+          modelEntity.setAttribute('rotation', dish.rotation);
+          modelEntity.setAttribute('position', '0 0 0');
+        });
+      });
+
+      modelEntity.addEventListener('model-loaded', () => {
+        modelLoader.classList.remove('show');
+        if (modelTimeout) { clearTimeout(modelTimeout); modelTimeout = null; }
+      }, { once: true });
+
+      modelTimeout = setTimeout(() => modelLoader.classList.remove('show'), 5000);
+
+      dishLabelText.textContent = dish.name;
+
+      // Update carousel
+      document.querySelectorAll('.dish-thumb').forEach((el, i) => {
+        el.classList.toggle('active', i === index);
+      });
+      document.querySelectorAll('.dish-thumb')[index]
+        .scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+
+      // Update counter dots
+      updateCounterDots(index);
+
+      // If table mode is on, sync the new dish into tableEntity
+      if (tableModeOn) {
+        const d = dishes[index];
+        tableEntity.removeAttribute('gltf-model');
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            tableEntity.setAttribute('gltf-model', `3d-model/${d.folder}/${d.model}`);
+            const parts  = d.scale.split(' ').map(Number);
+            const factor = 0.35;
+            tableEntity.setAttribute('scale', parts.map(v => v * factor).join(' '));
+            tableEntity.setAttribute('rotation', d.rotation);
+          });
+        });
+      }
+    }
+
+
+    /* ══════════════════════════════════════
+       SEE ON TABLE — table mode logic
+       When activated:
+         1. Hides the marker-bound modelEntity
+         2. Copies the current dish model into tableEntity (camera child)
+         3. tableEntity is always visible at fixed camera-space coords
+         4. Pressing again restores marker tracking mode
+    ══════════════════════════════════════ */
+    function setTableMode(on) {
+      tableModeOn = on;
+
+      if (on) {
+        // Mirror current dish into the camera-locked entity
+        const dish = dishes[currentIndex];
+        tableEntity.removeAttribute('gltf-model');
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            tableEntity.setAttribute('gltf-model', `3d-model/${dish.folder}/${dish.model}`);
+            // Scale down slightly from marker scale for comfortable viewing distance
+            const parts  = dish.scale.split(' ').map(Number);
+            const factor = 0.35; // table view scale factor — tweak per project
+            tableEntity.setAttribute('scale', parts.map(v => v * factor).join(' '));
+            tableEntity.setAttribute('rotation', dish.rotation);
+            tableEntity.setAttribute('visible', 'true');
+          });
+        });
+
+        // Hide the marker model so both don't show at once
+        modelEntity.setAttribute('visible', 'false');
+
+        // UI
+        tableBtn.classList.add('table-active');
+        tableBtnText.textContent = 'Back to Card';
+        tableBadge.classList.add('visible');
+        tableShadow.classList.add('visible');
+        dishLabel.style.opacity = '0';
+        dishLabel.style.pointerEvents = 'none';
+        scanHint.style.opacity = '0';
+
+      } else {
+        // Restore marker tracking mode
+        tableEntity.setAttribute('visible', 'false');
+        tableEntity.removeAttribute('gltf-model');
+        modelEntity.setAttribute('visible', 'true');
+
+        // UI
+        tableBtn.classList.remove('table-active');
+        tableBtnText.textContent = 'See on Table';
+        tableBadge.classList.remove('visible');
+        tableShadow.classList.remove('visible');
+        scanHint.style.opacity = '1';
+      }
+    }
+
+    ['click','touchend'].forEach(evt => {
+      tableBtn.addEventListener(evt, (e) => {
+        e.preventDefault();
+        setTableMode(!tableModeOn);
+      });
+    });
+
+    /* When dish changes while in table mode, update tableEntity too */
+    const _origSelectDish = selectDish;
+
+    /* ══════════════════════════════════════
+       SWIPE GESTURE HANDLER
+       - Tracks touchstart/touchend on swipeZone
+       - Min horizontal distance: 50px
+       - Max vertical drift: 80px (prevents false triggers when tilting phone)
+       - Debounce: 300ms between swipes
+    ══════════════════════════════════════ */
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchStartTime = 0;
+    let swipeLocked = false;
+
+    const SWIPE_MIN_X   = 50;   // px — minimum horizontal travel
+    const SWIPE_MAX_Y   = 80;   // px — maximum vertical drift allowed
+    const SWIPE_MAX_MS  = 500;  // ms — must complete within this time
+    const SWIPE_DEBOUNCE = 300; // ms — cooldown between swipes
+
+    swipeZone.addEventListener('touchstart', (e) => {
+      const t = e.changedTouches[0];
+      touchStartX    = t.clientX;
+      touchStartY    = t.clientY;
+      touchStartTime = Date.now();
+    }, { passive: true });
+
+    swipeZone.addEventListener('touchend', (e) => {
+      if (swipeLocked) return;
+
+      const t      = e.changedTouches[0];
+      const dx     = t.clientX - touchStartX;
+      const dy     = t.clientY - touchStartY;
+      const dt     = Date.now() - touchStartTime;
+      const absDx  = Math.abs(dx);
+      const absDy  = Math.abs(dy);
+
+      // Must be fast enough, wide enough, and not too vertical
+      if (dt > SWIPE_MAX_MS)    return;
+      if (absDx < SWIPE_MIN_X)  return;
+      if (absDy > SWIPE_MAX_Y)  return;
+      if (absDy > absDx * 0.9)  return; // more vertical than horizontal — ignore
+
+      swipeLocked = true;
+      setTimeout(() => { swipeLocked = false; }, SWIPE_DEBOUNCE);
+
+      if (dx < 0) {
+        // Swipe LEFT → next dish
+        triggerSwipe('left');
+      } else {
+        // Swipe RIGHT → prev dish
+        triggerSwipe('right');
+      }
+    }, { passive: true });
+
+    function triggerSwipe(direction) {
+      const total = dishes.length;
+      let next;
+
+      if (direction === 'left') {
+        next = (currentIndex + 1) % total;
+      } else {
+        next = (currentIndex - 1 + total) % total;
+      }
+
+      // Flash edge glow
+      swipeFlash.className = direction + ' flash';
+      swipeFlash.addEventListener('animationend', () => {
+        swipeFlash.className = '';
+      }, { once: true });
+
+      selectDish(next);
+    }
+
+    /* ── SHOW SWIPE HINT ONCE on AR ready ── */
+    function showSwipeHintOnce() {
+      if (swipeHintShown) return;
+      swipeHintShown = true;
+
+      // Wait a beat after AR loads, then show hint for 2.5s
+      setTimeout(() => {
+        swipeHint.classList.add('show');
+        setTimeout(() => {
+          swipeHint.classList.remove('show');
+        }, 2500);
+      }, 1200);
+    }
+
+    /* ── START AR ── */
+    async function startAR() {
+      if (arStarted) return;
+
+      startScreen.style.opacity = '0';
+      setTimeout(() => { startScreen.style.display = 'none'; }, 400);
+      loadingOverlay.classList.add('show');
+      loadingStatus.textContent = 'Starting camera';
+
+      try {
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+        const videoConstraints = isIOS
+          ? { facingMode: { exact: 'environment' } }
+          : { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } };
+
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: videoConstraints,
+          audio: false
+        });
+        stream.getTracks().forEach(t => t.stop());
+
+        loadingStatus.textContent = 'Initialising AR';
+        arScene.style.display = 'block';
+
+        let readyFired = false;
+
+        const onReady = () => {
+          if (readyFired) return;
+          readyFired = true;
+
+          loadingOverlay.classList.remove('show');
+          scanHint.style.opacity = '1';
+          arStarted = true;
+
+          // Enable swipe zone
+          swipeZone.classList.add('active');
+
+          alwaysVisible.forEach(el => {
+            el.style.opacity = '1';
+            el.style.pointerEvents = 'auto';
+          });
+          markerEls.forEach(el => {
+            el.style.opacity = '0';
+            el.style.pointerEvents = 'none';
+          });
+
+          selectDish(0);
+          showSwipeHintOnce();
+        };
+
+        arScene.addEventListener('loaded', onReady, { once: true });
+        arScene.addEventListener('arReady',  onReady, { once: true });
+        setTimeout(onReady, 3000);
+
+      } catch (err) {
+        console.error('Camera error:', err);
+        loadingOverlay.classList.remove('show');
+        errorOverlay.classList.add('show');
+      }
+    }
+
+    /* ── BUTTON HANDLERS ── */
+    ['click','touchend'].forEach(evt => {
+      document.querySelector('#startBtn').addEventListener(evt, (e) => {
+        e.preventDefault(); startAR();
+      });
+      document.querySelector('#retryBtn').addEventListener(evt, (e) => {
+        e.preventDefault();
+        errorOverlay.classList.remove('show');
+        startScreen.style.display = 'flex';
+        startScreen.style.opacity = '1';
+      });
+    });
+
+    /* ── AR TARGET EVENTS ── */
+    target.addEventListener('targetFound', () => {
+      markerEls.forEach(el => {
+        el.style.opacity = '1';
+        el.style.pointerEvents = 'auto';
+      });
+      scanHint.style.opacity = '0';
+    });
+
+    target.addEventListener('targetLost', () => {
+      markerEls.forEach(el => {
+        el.style.opacity = '0';
+        el.style.pointerEvents = 'none';
+      });
+      scanHint.style.opacity = '1';
+    });
+
+    document.addEventListener('contextmenu', e => e.preventDefault());
+  </script>
+</body>
+</html>
