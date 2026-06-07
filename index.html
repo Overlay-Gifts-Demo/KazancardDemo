@@ -399,16 +399,21 @@
       color: rgba(245,240,232,0.45);
     }
 
-    /* ══ SWIPE GESTURE LAYER ══ */
+    /* ══════════════════════════════════════
+       SWIPE GESTURE LAYER
+    ══════════════════════════════════════ */
+
+    /* Full-screen invisible swipe zone sitting above AR but below UI chrome */
     #swipeZone {
       position: fixed; inset: 0;
       z-index: 100;
-      touch-action: pan-y;
+      touch-action: pan-y; /* allow vertical scroll but we capture horizontal */
       -webkit-tap-highlight-color: transparent;
-      pointer-events: none;
+      pointer-events: none; /* enabled after AR starts */
     }
     #swipeZone.active { pointer-events: auto; }
 
+    /* Swipe arrow hints — appear briefly on first swipe interaction */
     #swipeHint {
       position: fixed; top: 50%; left: 50%;
       transform: translate(-50%, -50%);
@@ -444,6 +449,7 @@
       color: rgba(245,240,232,0.4);
     }
 
+    /* Dish counter pill — shows "2 / 4" */
     #dishCounter {
       position: fixed; top: 54px; left: 50%;
       transform: translateX(-50%);
@@ -472,6 +478,7 @@
       transform: scale(1.4);
     }
 
+    /* Swipe direction flash — brief directional overlay on swipe */
     #swipeFlash {
       position: fixed; inset: 0;
       pointer-events: none; z-index: 99;
@@ -486,10 +493,12 @@
     }
     #swipeFlash.flash { animation: flashFade 0.35s ease-out forwards; }
 
-    /* ══ SEE ON TABLE BUTTON ══ */
+    /* ══════════════════════════════════════
+       SEE ON TABLE BUTTON
+    ══════════════════════════════════════ */
     #tableBtn {
       position: fixed;
-      bottom: 108px;
+      bottom: 108px;             /* sits just above carousel */
       left: 50%;
       transform: translateX(-50%);
       z-index: 160;
@@ -526,12 +535,13 @@
     }
     #tableBtn.table-active svg { transform: scale(1.2) rotate(-10deg); }
 
+    /* Ripple-drop entrance animation for table mode */
     @keyframes dropIn {
       0%   { opacity: 0; transform: translateY(-18px) scale(0.88); }
       60%  { opacity: 1; transform: translateY(4px)  scale(1.03); }
       100% { opacity: 1; transform: translateY(0)    scale(1); }
     }
-
+    /* Table mode badge shown top-right when active */
     #tableBadge {
       position: fixed; top: 14px; right: 14px;
       z-index: 200;
@@ -559,9 +569,10 @@
       50%       { opacity: 0.4; transform: scale(0.7); }
     }
 
+    /* Table surface shadow ring — gives depth illusion under the floating dish */
     #tableShadow {
       position: fixed;
-      bottom: 28%;
+      bottom: 28%;   /* roughly where the dish base sits */
       left: 50%;
       transform: translateX(-50%);
       width: 140px; height: 28px;
@@ -652,7 +663,7 @@
   <!-- ══ DISH COUNTER DOTS ══ -->
   <div id="dishCounter"></div>
 
-  <!-- ══ SWIPE HINT ══ -->
+  <!-- ══ SWIPE HINT (shown once on AR start) ══ -->
   <div id="swipeHint">
     <div class="swipe-arrow">
       <div class="swipe-arrow-icon">
@@ -671,7 +682,7 @@
   <!-- ══ SWIPE FLASH ══ -->
   <div id="swipeFlash"></div>
 
-  <!-- ══ SWIPE ZONE ══ -->
+  <!-- ══ SWIPE ZONE (invisible, above AR) ══ -->
   <div id="swipeZone"></div>
 
   <!-- ══ SEE ON TABLE BUTTON ══ -->
@@ -692,7 +703,7 @@
     <span>Table View</span>
   </div>
 
-  <!-- ══ TABLE SHADOW ══ -->
+  <!-- ══ TABLE SHADOW (depth illusion) ══ -->
   <div id="tableShadow"></div>
 
   <!-- ══ SCAN HINT ══ -->
@@ -741,6 +752,13 @@
     <a-light type="point"       color="#fff5e0" intensity="1.2"  position="0 1.5 1" distance="4" decay="2"></a-light>
 
     <a-camera position="0 0 0" look-controls="enabled: false">
+      <!--
+        Fixed entity locked to camera — always at this screen-space position.
+        x=0      → horizontally centred
+        y=-0.55  → slightly below eye line (table surface feel)
+        z=-1.4   → ~1.4 m in front of camera (comfortable floating preview)
+        Hidden by default; shown only in table mode.
+      -->
       <a-entity
         id="tableEntity"
         position="0 -0.55 -1.4"
@@ -766,7 +784,7 @@
     /* ══════════════════════════════════════
        DISH DATA
     ══════════════════════════════════════ */
-    const dishes = [
+   const dishes = [
       { name: "mangopetaltower",     folder: "mangopetaltower",    model: "mangopetaltower.glb",    thumb: "mangopetaltower.png",    scale: "1.5 1.5 1.5", rotation: "90 90 90" },
       { name: "almondcrustedcrispy", folder: "almondcrustedcrispy",model: "almondcrustedcrispy.glb",thumb: "almondcrustedcrispy.png", scale: "1.5 1.5 1.5", rotation: "90 90 90" },
       { name: "crispyvegetable",     folder: "crispyvegetable",    model: "crispyvegetable.glb",    thumb: "crispyvegetable.png",    scale: "1.5 1.5 1.5", rotation: "90 90 90" },
@@ -776,20 +794,12 @@
       { name: "rameshkaramiso",      folder: "rameshkaramiso",     model: "rameshkaramiso.glb",     thumb: "rameshkaramiso.png",     scale: "1.5 1.5 1.5", rotation: "90 90 90" },
     ];
 
-    /* ══════════════════════════════════════
-       STATE
-    ══════════════════════════════════════ */
-    let currentIndex      = -1;  // -1 means nothing loaded yet
-    let arStarted         = false;
-    let modelTimeout      = null;
-    let swipeHintShown    = false;
-    let tableModeOn       = false;
-    let markerVisible     = false; // FIX #5: track whether card is in view
-    let pendingModelLoad  = null;  // FIX #7: track active model-loaded listener
+    let currentIndex   = -1;
+    let arStarted      = false;
+    let modelTimeout   = null;
+    let swipeHintShown = false;
+    let tableModeOn    = false;   // tracks See-on-Table state
 
-    /* ══════════════════════════════════════
-       DOM REFS
-    ══════════════════════════════════════ */
     const tableEntity    = document.querySelector('#tableEntity');
     const tableBtn       = document.querySelector('#tableBtn');
     const tableBtnText   = document.querySelector('#tableBtnText');
@@ -813,9 +823,10 @@
     const swipeFlash     = document.querySelector('#swipeFlash');
     const dishCounter    = document.querySelector('#dishCounter');
 
-    /* ══════════════════════════════════════
-       BUILD CAROUSEL
-    ══════════════════════════════════════ */
+    const alwaysVisible = [carousel, logo, dishCounter, tableBtn];
+    const markerEls     = [dishLabel];
+
+    /* ── BUILD CAROUSEL ── */
     dishes.forEach((dish, i) => {
       const thumb = document.createElement('div');
       thumb.className = 'dish-thumb' + (i === 0 ? ' active' : '');
@@ -828,24 +839,12 @@
         </div>
         <span>${dish.name}</span>
       `;
-      // FIX #8: Use only touchend on mobile; fall back to click on desktop.
-      // Prevents double-fire on Android where both touchend + click fire.
-      let touchFired = false;
-      thumb.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        touchFired = true;
-        selectDish(i);
-        setTimeout(() => { touchFired = false; }, 300);
-      });
-      thumb.addEventListener('click', () => {
-        if (!touchFired) selectDish(i);
-      });
+      thumb.addEventListener('click', () => selectDish(i));
+      thumb.addEventListener('touchend', (e) => { e.preventDefault(); selectDish(i); });
       carousel.appendChild(thumb);
     });
 
-    /* ══════════════════════════════════════
-       BUILD COUNTER DOTS
-    ══════════════════════════════════════ */
+    /* ── BUILD COUNTER DOTS ── */
     dishes.forEach((_, i) => {
       const dot = document.createElement('div');
       dot.className = 'counter-dot' + (i === 0 ? ' active' : '');
@@ -859,181 +858,142 @@
       });
     }
 
-    /* ══════════════════════════════════════
-       LOAD MODEL HELPER
-       FIX #7: Cancels any pending model-loaded listener before attaching a new one.
-       This prevents stale listeners from hiding the loader prematurely or leaking.
-    ══════════════════════════════════════ */
-    function loadModelOnEntity(entity, src, scale, rotation, position) {
-      // Cancel previous listener if still waiting
-      if (pendingModelLoad) {
-        entity.removeEventListener('model-loaded', pendingModelLoad);
-        pendingModelLoad = null;
-      }
-      if (modelTimeout) {
-        clearTimeout(modelTimeout);
-        modelTimeout = null;
-      }
-
-      modelLoader.classList.add('show');
-      entity.removeAttribute('gltf-model');
-
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          entity.setAttribute('gltf-model', src);
-          entity.setAttribute('scale',    scale);
-          entity.setAttribute('rotation', rotation);
-          if (position) entity.setAttribute('position', position);
-        });
-      });
-
-      pendingModelLoad = () => {
-        modelLoader.classList.remove('show');
-        pendingModelLoad = null;
-        if (modelTimeout) { clearTimeout(modelTimeout); modelTimeout = null; }
-      };
-      entity.addEventListener('model-loaded', pendingModelLoad, { once: true });
-
-      // Safety fallback — hide loader after 5s regardless
-      modelTimeout = setTimeout(() => {
-        modelLoader.classList.remove('show');
-        pendingModelLoad = null;
-      }, 5000);
-    }
-
-    /* ══════════════════════════════════════
-       SELECT DISH
-       FIX #1: Guard now allows index=0 when currentIndex=-1 (first load).
-               Removed overly broad early-return that blocked initial selection.
-    ══════════════════════════════════════ */
+    /* ── SELECT DISH ── */
     function selectDish(index) {
-      // Allow same index only on first load (currentIndex still -1)
-      if (index === currentIndex && currentIndex !== -1) return;
+      if (index === currentIndex) return;
       currentIndex = index;
       const dish = dishes[index];
 
-      // Update marker-tracked entity
-      loadModelOnEntity(
-        modelEntity,
-        `3d-model/${dish.folder}/${dish.model}`,
-        dish.scale,
-        dish.rotation,
-        '0 0 0'
-      );
+      if (modelTimeout) { clearTimeout(modelTimeout); modelTimeout = null; }
+
+      modelLoader.classList.add('show');
+      modelEntity.removeAttribute('gltf-model');
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          modelEntity.setAttribute('gltf-model', `3d-model/${dish.folder}/${dish.model}`);
+          modelEntity.setAttribute('scale',    dish.scale);
+          modelEntity.setAttribute('rotation', dish.rotation);
+          modelEntity.setAttribute('position', '0 0 0');
+        });
+      });
+
+      modelEntity.addEventListener('model-loaded', () => {
+        modelLoader.classList.remove('show');
+        if (modelTimeout) { clearTimeout(modelTimeout); modelTimeout = null; }
+      }, { once: true });
+
+      modelTimeout = setTimeout(() => modelLoader.classList.remove('show'), 5000);
 
       dishLabelText.textContent = dish.name;
 
-      // Sync table entity if table mode is on
-      if (tableModeOn) {
-        syncTableEntity(dish);
-      }
-
-      // Update carousel active state
+      // Update carousel
       document.querySelectorAll('.dish-thumb').forEach((el, i) => {
         el.classList.toggle('active', i === index);
       });
-      const activeThumb = document.querySelectorAll('.dish-thumb')[index];
-      if (activeThumb) {
-        activeThumb.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-      }
+      document.querySelectorAll('.dish-thumb')[index]
+        .scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
 
       // Update counter dots
       updateCounterDots(index);
-    }
 
-    /* ══════════════════════════════════════
-       TABLE ENTITY SYNC
-       Separated into its own function for clarity and reuse.
-    ══════════════════════════════════════ */
-    function syncTableEntity(dish) {
-      tableEntity.removeAttribute('gltf-model');
-      requestAnimationFrame(() => {
+      // If table mode is on, sync the new dish into tableEntity
+      if (tableModeOn) {
+        const d = dishes[index];
+        tableEntity.removeAttribute('gltf-model');
         requestAnimationFrame(() => {
-          tableEntity.setAttribute('gltf-model', `3d-model/${dish.folder}/${dish.model}`);
-          const parts  = dish.scale.split(' ').map(Number);
-          const factor = 0.35;
-          tableEntity.setAttribute('scale', parts.map(v => v * factor).join(' '));
-          tableEntity.setAttribute('rotation', dish.rotation);
-          tableEntity.setAttribute('visible', 'true');
+          requestAnimationFrame(() => {
+            tableEntity.setAttribute('gltf-model', `3d-model/${d.folder}/${d.model}`);
+            const parts  = d.scale.split(' ').map(Number);
+            const factor = 0.35;
+            tableEntity.setAttribute('scale', parts.map(v => v * factor).join(' '));
+            tableEntity.setAttribute('rotation', d.rotation);
+          });
         });
-      });
+      }
     }
 
+
     /* ══════════════════════════════════════
-       TABLE MODE
-       FIX #5: scanHint visibility now correctly respects markerVisible state
-               instead of blindly setting opacity:'1' on exit.
-       FIX #6: tableBtn uses touchFired guard to prevent double-fire on Android.
+       SEE ON TABLE — table mode logic
+       When activated:
+         1. Hides the marker-bound modelEntity
+         2. Copies the current dish model into tableEntity (camera child)
+         3. tableEntity is always visible at fixed camera-space coords
+         4. Pressing again restores marker tracking mode
     ══════════════════════════════════════ */
     function setTableMode(on) {
       tableModeOn = on;
 
       if (on) {
-        if (currentIndex === -1) return; // no dish loaded yet — do nothing
+        // Mirror current dish into the camera-locked entity
         const dish = dishes[currentIndex];
-        syncTableEntity(dish);
+        tableEntity.removeAttribute('gltf-model');
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            tableEntity.setAttribute('gltf-model', `3d-model/${dish.folder}/${dish.model}`);
+            // Scale down slightly from marker scale for comfortable viewing distance
+            const parts  = dish.scale.split(' ').map(Number);
+            const factor = 0.35; // table view scale factor — tweak per project
+            tableEntity.setAttribute('scale', parts.map(v => v * factor).join(' '));
+            tableEntity.setAttribute('rotation', dish.rotation);
+            tableEntity.setAttribute('visible', 'true');
+          });
+        });
 
-        // Hide the marker model while table mode is active
+        // Hide the marker model so both don't show at once
         modelEntity.setAttribute('visible', 'false');
 
+        // UI
         tableBtn.classList.add('table-active');
         tableBtnText.textContent = 'Back to Card';
         tableBadge.classList.add('visible');
         tableShadow.classList.add('visible');
-
-        // Hide dish label and scan hint while in table mode
-        dishLabel.style.opacity      = '0';
+        dishLabel.style.opacity = '0';
         dishLabel.style.pointerEvents = 'none';
-        scanHint.style.opacity       = '0';
+        scanHint.style.opacity = '0';
 
       } else {
-        // Restore
+        // Restore marker tracking mode
         tableEntity.setAttribute('visible', 'false');
         tableEntity.removeAttribute('gltf-model');
         modelEntity.setAttribute('visible', 'true');
 
+        // UI
         tableBtn.classList.remove('table-active');
         tableBtnText.textContent = 'See on Table';
         tableBadge.classList.remove('visible');
         tableShadow.classList.remove('visible');
-
-        // FIX #5: Restore scan hint state based on whether card is currently visible
-        if (markerVisible) {
-          dishLabel.style.opacity       = '1';
-          dishLabel.style.pointerEvents = 'auto';
-          scanHint.style.opacity        = '0';
-        } else {
-          dishLabel.style.opacity       = '0';
-          dishLabel.style.pointerEvents = 'none';
-          scanHint.style.opacity        = '1';
-        }
+        scanHint.style.opacity = '1';
       }
     }
 
-    // FIX #6: Prevent double-fire (touchend + click both triggering setTableMode)
-    let tableBtnTouchFired = false;
-    tableBtn.addEventListener('touchend', (e) => {
-      e.preventDefault();
-      tableBtnTouchFired = true;
-      setTableMode(!tableModeOn);
-      setTimeout(() => { tableBtnTouchFired = false; }, 300);
+    ['click','touchend'].forEach(evt => {
+      tableBtn.addEventListener(evt, (e) => {
+        e.preventDefault();
+        setTableMode(!tableModeOn);
+      });
     });
-    tableBtn.addEventListener('click', () => {
-      if (!tableBtnTouchFired) setTableMode(!tableModeOn);
-    });
+
+    /* When dish changes while in table mode, update tableEntity too */
+    const _origSelectDish = selectDish;
 
     /* ══════════════════════════════════════
        SWIPE GESTURE HANDLER
+       - Tracks touchstart/touchend on swipeZone
+       - Min horizontal distance: 50px
+       - Max vertical drift: 80px (prevents false triggers when tilting phone)
+       - Debounce: 300ms between swipes
     ══════════════════════════════════════ */
-    let touchStartX    = 0;
-    let touchStartY    = 0;
+    let touchStartX = 0;
+    let touchStartY = 0;
     let touchStartTime = 0;
-    let swipeLocked    = false;
+    let swipeLocked = false;
 
-    const SWIPE_MIN_X    = 50;
-    const SWIPE_MAX_Y    = 80;
-    const SWIPE_MAX_MS   = 500;
-    const SWIPE_DEBOUNCE = 300;
+    const SWIPE_MIN_X   = 50;   // px — minimum horizontal travel
+    const SWIPE_MAX_Y   = 80;   // px — maximum vertical drift allowed
+    const SWIPE_MAX_MS  = 500;  // ms — must complete within this time
+    const SWIPE_DEBOUNCE = 300; // ms — cooldown between swipes
 
     swipeZone.addEventListener('touchstart', (e) => {
       const t = e.changedTouches[0];
@@ -1045,30 +1005,42 @@
     swipeZone.addEventListener('touchend', (e) => {
       if (swipeLocked) return;
 
-      const t     = e.changedTouches[0];
-      const dx    = t.clientX - touchStartX;
-      const dy    = t.clientY - touchStartY;
-      const dt    = Date.now() - touchStartTime;
-      const absDx = Math.abs(dx);
-      const absDy = Math.abs(dy);
+      const t      = e.changedTouches[0];
+      const dx     = t.clientX - touchStartX;
+      const dy     = t.clientY - touchStartY;
+      const dt     = Date.now() - touchStartTime;
+      const absDx  = Math.abs(dx);
+      const absDy  = Math.abs(dy);
 
-      if (dt    > SWIPE_MAX_MS)  return;
+      // Must be fast enough, wide enough, and not too vertical
+      if (dt > SWIPE_MAX_MS)    return;
       if (absDx < SWIPE_MIN_X)  return;
       if (absDy > SWIPE_MAX_Y)  return;
-      if (absDy > absDx * 0.9)  return;
+      if (absDy > absDx * 0.9)  return; // more vertical than horizontal — ignore
 
       swipeLocked = true;
       setTimeout(() => { swipeLocked = false; }, SWIPE_DEBOUNCE);
 
-      triggerSwipe(dx < 0 ? 'left' : 'right');
+      if (dx < 0) {
+        // Swipe LEFT → next dish
+        triggerSwipe('left');
+      } else {
+        // Swipe RIGHT → prev dish
+        triggerSwipe('right');
+      }
     }, { passive: true });
 
     function triggerSwipe(direction) {
       const total = dishes.length;
-      const next  = direction === 'left'
-        ? (currentIndex + 1) % total
-        : (currentIndex - 1 + total) % total;
+      let next;
 
+      if (direction === 'left') {
+        next = (currentIndex + 1) % total;
+      } else {
+        next = (currentIndex - 1 + total) % total;
+      }
+
+      // Flash edge glow
       swipeFlash.className = direction + ' flash';
       swipeFlash.addEventListener('animationend', () => {
         swipeFlash.className = '';
@@ -1077,21 +1049,21 @@
       selectDish(next);
     }
 
-    /* ══════════════════════════════════════
-       SWIPE HINT — shown once on AR ready
-    ══════════════════════════════════════ */
+    /* ── SHOW SWIPE HINT ONCE on AR ready ── */
     function showSwipeHintOnce() {
       if (swipeHintShown) return;
       swipeHintShown = true;
+
+      // Wait a beat after AR loads, then show hint for 2.5s
       setTimeout(() => {
         swipeHint.classList.add('show');
-        setTimeout(() => { swipeHint.classList.remove('show'); }, 2500);
+        setTimeout(() => {
+          swipeHint.classList.remove('show');
+        }, 2500);
       }, 1200);
     }
 
-    /* ══════════════════════════════════════
-       START AR
-    ══════════════════════════════════════ */
+    /* ── START AR ── */
     async function startAR() {
       if (arStarted) return;
 
@@ -1102,11 +1074,15 @@
 
       try {
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
         const videoConstraints = isIOS
           ? { facingMode: { exact: 'environment' } }
           : { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } };
 
-        const stream = await navigator.mediaDevices.getUserMedia({ video: videoConstraints, audio: false });
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: videoConstraints,
+          audio: false
+        });
         stream.getTracks().forEach(t => t.stop());
 
         loadingStatus.textContent = 'Initialising AR';
@@ -1122,26 +1098,23 @@
           scanHint.style.opacity = '1';
           arStarted = true;
 
+          // Enable swipe zone
           swipeZone.classList.add('active');
 
-          // Show persistent UI elements
-          [carousel, logo, dishCounter].forEach(el => {
-            el.style.opacity      = '1';
+          alwaysVisible.forEach(el => {
+            el.style.opacity = '1';
             el.style.pointerEvents = 'auto';
           });
-
-          // tableBtn uses .visible class (not inline style) — FIX #2
-          tableBtn.classList.add('visible');
-
-          // dishLabel stays hidden until marker found
-          dishLabel.style.opacity       = '0';
-          dishLabel.style.pointerEvents = 'none';
+          markerEls.forEach(el => {
+            el.style.opacity = '0';
+            el.style.pointerEvents = 'none';
+          });
 
           selectDish(0);
           showSwipeHintOnce();
         };
 
-        arScene.addEventListener('loaded',   onReady, { once: true });
+        arScene.addEventListener('loaded', onReady, { once: true });
         arScene.addEventListener('arReady',  onReady, { once: true });
         setTimeout(onReady, 3000);
 
@@ -1152,61 +1125,41 @@
       }
     }
 
-    /* ══════════════════════════════════════
-       BUTTON HANDLERS
-    ══════════════════════════════════════ */
-    // FIX #6 pattern applied to startBtn and retryBtn too
-    let startBtnTouched = false;
-    document.querySelector('#startBtn').addEventListener('touchend', (e) => {
-      e.preventDefault();
-      startBtnTouched = true;
-      startAR();
-      setTimeout(() => { startBtnTouched = false; }, 300);
-    });
-    document.querySelector('#startBtn').addEventListener('click', () => {
-      if (!startBtnTouched) startAR();
-    });
-
-    let retryBtnTouched = false;
-    document.querySelector('#retryBtn').addEventListener('touchend', (e) => {
-      e.preventDefault();
-      retryBtnTouched = true;
-      errorOverlay.classList.remove('show');
-      startScreen.style.display = 'flex';
-      startScreen.style.opacity = '1';
-      setTimeout(() => { retryBtnTouched = false; }, 300);
-    });
-    document.querySelector('#retryBtn').addEventListener('click', () => {
-      if (!retryBtnTouched) {
+    /* ── BUTTON HANDLERS ── */
+    ['click','touchend'].forEach(evt => {
+      document.querySelector('#startBtn').addEventListener(evt, (e) => {
+        e.preventDefault(); startAR();
+      });
+      document.querySelector('#retryBtn').addEventListener(evt, (e) => {
+        e.preventDefault();
         errorOverlay.classList.remove('show');
         startScreen.style.display = 'flex';
         startScreen.style.opacity = '1';
-      }
+      });
     });
 
-    /* ══════════════════════════════════════
-       AR TARGET EVENTS
-       FIX #5: Set markerVisible flag so setTableMode(false) knows correct state.
-    ══════════════════════════════════════ */
+    /* ── AR TARGET EVENTS ── */
     target.addEventListener('targetFound', () => {
-      markerVisible = true;
-      if (!tableModeOn) {
-        dishLabel.style.opacity       = '1';
-        dishLabel.style.pointerEvents = 'auto';
-        scanHint.style.opacity        = '0';
-      }
+      markerEls.forEach(el => {
+        el.style.opacity = '1';
+        el.style.pointerEvents = 'auto';
+      });
+      scanHint.style.opacity = '0';
     });
 
     target.addEventListener('targetLost', () => {
-      markerVisible = false;
-      if (!tableModeOn) {
-        dishLabel.style.opacity       = '0';
-        dishLabel.style.pointerEvents = 'none';
-        scanHint.style.opacity        = '1';
-      }
+      markerEls.forEach(el => {
+        el.style.opacity = '0';
+        el.style.pointerEvents = 'none';
+      });
+      scanHint.style.opacity = '1';
     });
 
     document.addEventListener('contextmenu', e => e.preventDefault());
   </script>
 </body>
 </html>
+
+    
+
+   
