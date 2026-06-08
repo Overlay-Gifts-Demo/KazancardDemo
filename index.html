@@ -600,13 +600,11 @@
 </head>
 <body>
 
-  <!-- ── LANDSCAPE WARNING ── -->
   <div id="landscapeWarn">
     <span>📱</span>
     <p>Please rotate your device to portrait mode</p>
   </div>
 
-  <!-- ── START SCREEN ── -->
   <div id="startScreen">
     <div class="start-inner">
       <img class="start-logo" src="logo1.png" onerror="this.style.display='none'" alt="Logo">
@@ -629,7 +627,6 @@
     </div>
   </div>
 
-  <!-- ── LOADING ── -->
   <div id="loadingOverlay">
     <div class="loading-ring">
       <svg viewBox="0 0 56 56" width="56" height="56" fill="none">
@@ -641,13 +638,11 @@
     <p id="loadingStatus">Starting camera</p>
   </div>
 
-  <!-- ── MINI MODEL LOADER ── -->
   <div id="modelLoader">
     <div class="mini-spin"></div>
     <span>Loading dish</span>
   </div>
 
-  <!-- ── ERROR ── -->
   <div id="errorOverlay">
     <div class="err-icon-wrap">📵</div>
     <h2>Camera Access Denied</h2>
@@ -659,7 +654,6 @@
     <button id="retryBtn">Retry</button>
   </div>
 
-  <!-- ── IN-AR CHROME ── -->
   <img src="logo1.png" id="logo" alt="Logo">
 
   <div id="dishLabel">
@@ -667,10 +661,8 @@
     <span id="dishLabelText">Agedashi Tofu</span>
   </div>
 
-  <!-- ── DISH COUNTER DOTS ── -->
   <div id="dishCounter"></div>
 
-  <!-- ── SWIPE HINT ── -->
   <div id="swipeHint">
     <div class="swipe-arrow">
       <div class="swipe-arrow-icon">
@@ -686,13 +678,10 @@
     </div>
   </div>
 
-  <!-- ── SWIPE FLASH ── -->
   <div id="swipeFlash"></div>
 
-  <!-- ── SWIPE ZONE ── -->
   <div id="swipeZone"></div>
 
-  <!-- ── SEE ON TABLE BUTTON ── -->
   <button id="tableBtn" aria-label="See on table">
     <svg viewBox="0 0 24 24">
       <path d="M3 17 Q12 13 21 17"/>
@@ -704,16 +693,13 @@
     <span id="tableBtnText">See on Table</span>
   </button>
 
-  <!-- ── TABLE BADGE ── -->
   <div id="tableBadge">
     <div class="badge-pulse"></div>
     <span>Table View</span>
   </div>
 
-  <!-- ── TABLE SHADOW ── -->
   <div id="tableShadow"></div>
 
-  <!-- ── SCAN HINT ── -->
   <div id="scanHint">
     <div class="scan-frame">
       <div class="scan-line"></div>
@@ -723,17 +709,10 @@
     <p>Point at menu card</p>
   </div>
 
-  <!-- ── CAROUSEL ── -->
   <div id="dishCarousel"></div>
 
-  <!--
-    FIX 1: a-scene is NO LONGER display:none.
-    Using visibility:hidden + opacity:0 keeps the WebGL context alive on iOS Safari.
-    display:none destroys the context before MindAR can initialise.
-  -->
   <a-scene
     id="arScene"
-     embedded
     mindar-image="imageTargetSrc: ./targets/card.mind;
                   filterMinCF: 0.1;
                   filterBeta: 10;
@@ -764,16 +743,9 @@
     <a-light type="directional" color="#cce8ff" intensity="0.6"  position="0 -1 2"></a-light>
     <a-light type="point"       color="#fff5e0" intensity="1.2"  position="0 1.5 1" distance="4" decay="2"></a-light>
 
-    <a-camera position="0 0 0" look-controls="enabled: false">
-      <a-entity
-        id="tableEntity"
-        position="0 -0.55 -1.4"
-        rotation="0 0 0"
-        scale="1 1 1"
-        gltf-model=""
-        visible="false">
-      </a-entity>
-    </a-camera>
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+    <a-entity id="tableEntity" position="0 -0.55 -1.4" rotation="0 0 0" scale="1 1 1" gltf-model="" visible="false"></a-entity>
 
     <a-entity id="target1" mindar-image-target="targetIndex: 0">
       <a-entity
@@ -788,11 +760,11 @@
 
   <script>
     /* ══════════════════════════════════════
-       DISH DATA
-    ══════════════════════════════════════ */
+        DISH DATA
+       ══════════════════════════════════════ */
     const dishes = [
-      { name: "ramenshoyu",     folder: "ramenshoyu",     model: "ramenshoyu.glb",     thumb: "ramenshoyu.png",     scale: "11 11 11",     rotation: "90 90 90" },
-      { name: "ramenshio",      folder: "ramenshio",      model: "ramenshio.glb",      thumb: "ramenshio.png",      scale: "1.3 1.3 1.3",  rotation: "90 90 90" },
+      { name: "ramenshoyu",      folder: "ramenshoyu",      model: "ramenshoyu.glb",      thumb: "ramenshoyu.png",      scale: "11 11 11",     rotation: "90 90 90" },
+      { name: "ramenshio",       folder: "ramenshio",       model: "ramenshio.glb",       thumb: "ramenshio.png",       scale: "1.3 1.3 1.3",  rotation: "90 90 90" },
       { name: "rameshkaramiso", folder: "rameshkaramiso", model: "rameshkaramiso.glb", thumb: "rameshkaramiso.png", scale: "1.3 1.3 1.3",  rotation: "90 90 90" },
     ];
 
@@ -828,12 +800,6 @@
     const alwaysVisible = [carousel, logo, dishCounter, tableBtn];
     const markerEls     = [dishLabel];
 
-    /* ══════════════════════════════════════
-       FIX 3 — MutationObserver: force playsinline
-       on A-Frame's injected <video> element.
-       iOS Safari REQUIRES playsinline as an HTML
-       attribute (not just CSS) or it goes fullscreen.
-    ══════════════════════════════════════ */
     const videoObserver = new MutationObserver(() => {
       const vid = arScene.querySelector('video');
       if (vid) {
@@ -897,7 +863,6 @@
         });
       });
 
-      /* FIX — model-error handler so spinner doesn't hang forever */
       const onModelLoaded = () => {
         modelLoader.classList.remove('show');
         if (modelTimeout) { clearTimeout(modelTimeout); modelTimeout = null; }
@@ -919,8 +884,9 @@
       document.querySelectorAll('.dish-thumb').forEach((el, i) => {
         el.classList.toggle('active', i === index);
       });
-      document.querySelectorAll('.dish-thumb')[index]
-        .scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      if(document.querySelectorAll('.dish-thumb')[index]) {
+        document.querySelectorAll('.dish-thumb')[index].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      }
 
       updateCounterDots(index);
 
@@ -929,7 +895,7 @@
       }
     }
 
-    /* ── SYNC TABLE ENTITY (helper) ── */
+    /* ── SYNC TABLE ENTITY ── */
     function syncTableEntity(dish) {
       tableEntity.removeAttribute('gltf-model');
       requestAnimationFrame(() => {
@@ -942,15 +908,12 @@
         });
       });
 
-      /* model-error on tableEntity too */
       tableEntity.addEventListener('model-error', () => {
         console.warn('Table entity model failed:', dish.model);
       }, { once: true });
     }
 
-    /* ══════════════════════════════════════
-       SEE ON TABLE
-    ══════════════════════════════════════ */
+    /* ── SEE ON TABLE ── */
     function setTableMode(on) {
       tableModeOn = on;
 
@@ -982,19 +945,12 @@
       }
     }
 
-    /*
-      FIX 4 — Only bind 'click' on tableBtn.
-      touch-action:manipulation already removes the 300ms delay,
-      so binding both click + touchend causes double-toggle on Android.
-    */
     tableBtn.addEventListener('click', (e) => {
       e.preventDefault();
       setTableMode(!tableModeOn);
     });
 
-    /* ══════════════════════════════════════
-       SWIPE GESTURE HANDLER
-    ══════════════════════════════════════ */
+    /* ── SWIPE GESTURE HANDLER ── */
     let touchStartX    = 0;
     let touchStartY    = 0;
     let touchStartTime = 0;
@@ -1002,7 +958,7 @@
 
     const SWIPE_MIN_X    = 50;
     const SWIPE_MAX_Y    = 80;
-    const SWIPE_MAX_MS   = 500;
+    const SWIPE_MAX_MS    = 500;
     const SWIPE_DEBOUNCE = 300;
 
     swipeZone.addEventListener('touchstart', (e) => {
@@ -1047,7 +1003,6 @@
       selectDish(next);
     }
 
-    /* ── SHOW SWIPE HINT ONCE ── */
     function showSwipeHintOnce() {
       if (swipeHintShown) return;
       swipeHintShown = true;
@@ -1056,17 +1011,8 @@
         setTimeout(() => swipeHint.classList.remove('show'), 2500);
       }, 1200);
     }
-window.addEventListener("pageshow", () => {
-  if (arStarted) return;
 
-  setTimeout(() => {
-    const btn = document.getElementById("startBtn");
-    if (btn) btn.click();
-  }, 300);
-});
-    /* ══════════════════════════════════════
-       START AR
-    ══════════════════════════════════════ */
+    /* ── START AR FUNCTION ── */
     async function startAR() {
       if (arStarted) return;
 
@@ -1076,63 +1022,52 @@ window.addEventListener("pageshow", () => {
       loadingStatus.textContent = 'Starting camera';
 
       try {
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-
-        /*
-          FIX 2 — Use 'ideal' (not 'exact') for both platforms.
-          'exact' throws OverconstrainedError on iOS if the browser
-          has a camera conflict. Since we stop this stream immediately
-          after the permission check, 'ideal' is sufficient everywhere.
-        */
+        // Step 1: Pre-verify camera access permission safely
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: { ideal: 'environment' } },
           audio: false
         });
+        
+        // Stop track loop immediately to clear pipeline access lock
         stream.getTracks().forEach(t => t.stop());
 
         loadingStatus.textContent = 'Initialising AR';
 
-        /*
-          FIX 1 — Reveal a-scene with visibility/opacity instead of display.
-          This keeps the WebGL context alive (required by iOS Safari).
-        */
-       await new Promise(resolve => requestAnimationFrame(resolve));
-await new Promise(resolve => requestAnimationFrame(resolve));
+        // Step 2: Tiny safety timeout (120ms) to ensure the mobile hardware completely releases the pre-check lock
+        setTimeout(() => {
+          arScene.style.visibility  = 'visible';
+          arScene.style.opacity     = '1';
+          arScene.style.pointerEvents = 'auto';
 
-        let readyFired = false;
+          let readyFired = false;
+          const onReady = () => {
+            if (readyFired) return;
+            readyFired = true;
 
-        const onReady = () => {
-          if (readyFired) return;
-          readyFired = true;
+            loadingOverlay.classList.remove('show');
+            scanHint.style.opacity = '1';
+            arStarted = true;
+            swipeZone.classList.add('active');
 
-          loadingOverlay.classList.remove('show');
-          scanHint.style.opacity = '1';
-          arStarted = true;
+            alwaysVisible.forEach(el => {
+              el.style.opacity = '1';
+              el.style.pointerEvents = 'auto';
+            });
+            markerEls.forEach(el => {
+              el.style.opacity = '0';
+              el.style.pointerEvents = 'none';
+            });
 
-          swipeZone.classList.add('active');
+            selectDish(0);
+            showSwipeHintOnce();
+          };
 
-          alwaysVisible.forEach(el => {
-            el.style.opacity = '1';
-            el.style.pointerEvents = 'auto';
-          });
-          markerEls.forEach(el => {
-            el.style.opacity = '0';
-            el.style.pointerEvents = 'none';
-          });
+          arScene.addEventListener('loaded',   onReady, { once: true });
+          arScene.addEventListener('arReady',  onReady, { once: true });
 
-          selectDish(0);
-          showSwipeHintOnce();
-        };
-
-        await new Promise(resolve => setTimeout(resolve, 300));
-
-const sceneSystem = arScene.systems["mindar-image-system"];
-
-if (sceneSystem) {
-    await sceneSystem.start();
-}
-
-onReady();
+          // Fallback trigger for slower system architectures
+          setTimeout(onReady, 8000);
+        }, 120);
 
       } catch (err) {
         console.error('Camera error:', err);
@@ -1141,25 +1076,10 @@ onReady();
       }
     }
 
-    /* ── BUTTON HANDLERS ── */
-    /*
-      FIX 4 (applied here too) — only 'click' on startBtn and retryBtn.
-      touch-action:manipulation removes the 300ms delay;
-      binding both click + touchend double-fires on Android Chrome.
-    */
-   document.querySelector('#startBtn').addEventListener('click', async (e) => {
-  e.preventDefault();
-
-  try {
-    await startAR();
-  } catch(err) {
-    console.error(err);
-
-    setTimeout(() => {
+    document.querySelector('#startBtn').addEventListener('click', (e) => {
+      e.preventDefault();
       startAR();
-    }, 1000);
-  }
-});
+    });
 
     document.querySelector('#retryBtn').addEventListener('click', (e) => {
       e.preventDefault();
@@ -1170,7 +1090,7 @@ onReady();
 
     /* ── AR TARGET EVENTS ── */
     target.addEventListener('targetFound', () => {
-      if (tableModeOn) return; // don't fight table mode
+      if (tableModeOn) return; 
       markerEls.forEach(el => {
         el.style.opacity = '1';
         el.style.pointerEvents = 'auto';
