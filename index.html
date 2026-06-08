@@ -60,113 +60,6 @@
       pointer-events: none; z-index: 5; opacity: 0.6;
     }
 
-    /* ── START SCREEN ── */
-    #startScreen {
-      position: fixed; inset: 0;
-      background: #060504;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      z-index: 999; padding: 40px 32px;
-      transition: opacity 0.4s ease;
-    }
-    #startScreen::before, #startScreen::after {
-      content: '';
-      position: absolute;
-      width: 60px; height: 60px;
-      border-color: var(--gold-border);
-      border-style: solid;
-    }
-    #startScreen::before { top: 24px; left: 24px; border-width: 1px 0 0 1px; }
-    #startScreen::after  { bottom: 24px; right: 24px; border-width: 0 1px 1px 0; }
-
-    .start-inner {
-      display: flex; flex-direction: column;
-      align-items: center; gap: 0;
-      max-width: 320px; width: 100%;
-    }
-    .start-ornament {
-      display: flex; align-items: center; gap: 12px;
-      margin-bottom: 28px;
-    }
-    .start-ornament-line {
-      width: 40px; height: 1px;
-      background: linear-gradient(90deg, transparent, var(--gold));
-    }
-    .start-ornament-line.right {
-      background: linear-gradient(90deg, var(--gold), transparent);
-    }
-    .start-ornament-diamond {
-      width: 6px; height: 6px;
-      background: var(--gold);
-      transform: rotate(45deg);
-    }
-    #startScreen img.start-logo {
-      width: 72px; height: 72px;
-      object-fit: contain;
-      margin-bottom: 20px;
-      filter: brightness(0) invert(1) sepia(1) saturate(0.6);
-    }
-    .start-eyebrow {
-      font-size: 10px; font-weight: 400;
-      letter-spacing: 0.22em;
-      color: var(--gold);
-      text-transform: uppercase;
-      margin-bottom: 14px;
-    }
-    #startScreen h1 {
-      font-family: 'Cormorant Garamond', serif;
-      color: var(--cream);
-      font-size: 36px; font-weight: 300;
-      letter-spacing: 0.01em; line-height: 1.15;
-      text-align: center; margin-bottom: 20px;
-    }
-    #startScreen h1 em { font-style: italic; color: var(--gold-light); }
-    #startScreen p {
-      color: rgba(245,240,232,0.42);
-      font-size: 13px; font-weight: 300;
-      text-align: center; line-height: 1.75;
-      margin-bottom: 36px; letter-spacing: 0.03em;
-    }
-    #startBtn {
-      position: relative;
-      padding: 16px 42px;
-      font-family: 'Jost', sans-serif;
-      font-size: 12px; font-weight: 400;
-      letter-spacing: 0.18em; text-transform: uppercase;
-      border: 1px solid var(--gold-border);
-      border-radius: var(--radius-pill);
-      background: transparent;
-      color: var(--gold-light);
-      cursor: pointer; overflow: hidden;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
-      transition: color 0.3s, border-color 0.3s;
-    }
-    #startBtn::before {
-      content: '';
-      position: absolute; inset: 0;
-      background: var(--gold);
-      transform: scaleX(0);
-      transform-origin: left;
-      transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
-      z-index: -1;
-    }
-    #startBtn:active::before { transform: scaleX(1); }
-    #startBtn:active { color: var(--ink); border-color: var(--gold); }
-
-    .start-footer {
-      position: absolute; bottom: 36px;
-      display: flex; align-items: center; gap: 8px;
-    }
-    .start-footer span {
-      font-size: 10px; letter-spacing: 0.12em;
-      color: rgba(245,240,232,0.2); text-transform: uppercase;
-    }
-    .start-footer-dot {
-      width: 3px; height: 3px;
-      border-radius: 50%; background: var(--gold-border);
-    }
-
     /* ── LOADING ── */
     #loadingOverlay {
       position: fixed; inset: 0;
@@ -573,7 +466,6 @@
     @media (max-width: 390px) {
       .dish-thumb img { width: 42px; height: 42px; }
       .thumb-img-wrap { width: 42px; height: 42px; }
-      #startScreen h1 { font-size: 30px; }
     }
 
     /* ── Landscape warning ── */
@@ -603,28 +495,6 @@
   <div id="landscapeWarn">
     <span>📱</span>
     <p>Please rotate your device to portrait mode</p>
-  </div>
-
-  <div id="startScreen">
-    <div class="start-inner">
-      <img class="start-logo" src="logo1.png" onerror="this.style.display='none'" alt="Logo">
-      <p class="start-eyebrow">Augmented Reality Experience</p>
-      <div class="start-ornament">
-        <div class="start-ornament-line"></div>
-        <div class="start-ornament-diamond"></div>
-        <div class="start-ornament-line right"></div>
-      </div>
-      <h1>Explore the<br>flavours of <em>Japan</em></h1>
-      <p>Point your camera at the menu card to see every dish rendered in stunning 3D, right at your table.</p>
-      <button id="startBtn">Activate Camera</button>
-    </div>
-    <div class="start-footer">
-      <span>Powered by AR</span>
-      <div class="start-footer-dot"></div>
-      <span>3D Preview</span>
-      <div class="start-footer-dot"></div>
-      <span>Live Tracking</span>
-    </div>
   </div>
 
   <div id="loadingOverlay">
@@ -743,9 +613,16 @@
     <a-light type="directional" color="#cce8ff" intensity="0.6"  position="0 -1 2"></a-light>
     <a-light type="point"       color="#fff5e0" intensity="1.2"  position="0 1.5 1" distance="4" decay="2"></a-light>
 
-    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-
-    <a-entity id="tableEntity" position="0 -0.55 -1.4" rotation="0 0 0" scale="1 1 1" gltf-model="" visible="false"></a-entity>
+    <a-camera position="0 0 0" look-controls="enabled: false">
+      <a-entity
+        id="tableEntity"
+        position="0 -0.55 -1.4"
+        rotation="0 0 0"
+        scale="1 1 1"
+        gltf-model=""
+        visible="false">
+      </a-entity>
+    </a-camera>
 
     <a-entity id="target1" mindar-image-target="targetIndex: 0">
       <a-entity
@@ -763,8 +640,8 @@
         DISH DATA
        ══════════════════════════════════════ */
     const dishes = [
-      { name: "ramenshoyu",      folder: "ramenshoyu",      model: "ramenshoyu.glb",      thumb: "ramenshoyu.png",      scale: "11 11 11",     rotation: "90 90 90" },
-      { name: "ramenshio",       folder: "ramenshio",       model: "ramenshio.glb",       thumb: "ramenshio.png",       scale: "1.3 1.3 1.3",  rotation: "90 90 90" },
+      { name: "ramenshoyu",      folder: "ramenshoyu",      model: "ramenshoyu.glb",     thumb: "ramenshoyu.png",     scale: "11 11 11",     rotation: "90 90 90" },
+      { name: "ramenshio",       folder: "ramenshio",       model: "ramenshio.glb",      thumb: "ramenshio.png",      scale: "1.3 1.3 1.3",  rotation: "90 90 90" },
       { name: "rameshkaramiso", folder: "rameshkaramiso", model: "rameshkaramiso.glb", thumb: "rameshkaramiso.png", scale: "1.3 1.3 1.3",  rotation: "90 90 90" },
     ];
 
@@ -787,7 +664,6 @@
     const scanHint       = document.querySelector('#scanHint');
     const target         = document.querySelector('#target1');
     const arScene        = document.querySelector('#arScene');
-    const startScreen    = document.querySelector('#startScreen');
     const loadingOverlay = document.querySelector('#loadingOverlay');
     const loadingStatus  = document.querySelector('#loadingStatus');
     const errorOverlay   = document.querySelector('#errorOverlay');
@@ -800,6 +676,7 @@
     const alwaysVisible = [carousel, logo, dishCounter, tableBtn];
     const markerEls     = [dishLabel];
 
+    /* ── MUTATION OBSERVER FOR INJECTED VIDEO ── */
     const videoObserver = new MutationObserver(() => {
       const vid = arScene.querySelector('video');
       if (vid) {
@@ -884,9 +761,8 @@
       document.querySelectorAll('.dish-thumb').forEach((el, i) => {
         el.classList.toggle('active', i === index);
       });
-      if(document.querySelectorAll('.dish-thumb')[index]) {
-        document.querySelectorAll('.dish-thumb')[index].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-      }
+      document.querySelectorAll('.dish-thumb')[index]
+        .scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
 
       updateCounterDots(index);
 
@@ -913,7 +789,7 @@
       }, { once: true });
     }
 
-    /* ── SEE ON TABLE ── */
+    /* ── SEE ON TABLE MODE ── */
     function setTableMode(on) {
       tableModeOn = on;
 
@@ -1012,62 +888,55 @@
       }, 1200);
     }
 
-    /* ── START AR FUNCTION ── */
+    /* ── DIRECT AR INITIALIZATION ── */
     async function startAR() {
       if (arStarted) return;
 
-      startScreen.style.opacity = '0';
-      setTimeout(() => { startScreen.style.display = 'none'; }, 400);
       loadingOverlay.classList.add('show');
       loadingStatus.textContent = 'Starting camera';
 
       try {
-        // Step 1: Pre-verify camera access permission safely
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: { ideal: 'environment' } },
           audio: false
         });
-        
-        // Stop track loop immediately to clear pipeline access lock
         stream.getTracks().forEach(t => t.stop());
 
         loadingStatus.textContent = 'Initialising AR';
 
-        // Step 2: Tiny safety timeout (120ms) to ensure the mobile hardware completely releases the pre-check lock
-        setTimeout(() => {
-          arScene.style.visibility  = 'visible';
-          arScene.style.opacity     = '1';
-          arScene.style.pointerEvents = 'auto';
+        arScene.style.visibility  = 'visible';
+        arScene.style.opacity     = '1';
+        arScene.style.pointerEvents = 'auto';
 
-          let readyFired = false;
-          const onReady = () => {
-            if (readyFired) return;
-            readyFired = true;
+        let readyFired = false;
 
-            loadingOverlay.classList.remove('show');
-            scanHint.style.opacity = '1';
-            arStarted = true;
-            swipeZone.classList.add('active');
+        const onReady = () => {
+          if (readyFired) return;
+          readyFired = true;
 
-            alwaysVisible.forEach(el => {
-              el.style.opacity = '1';
-              el.style.pointerEvents = 'auto';
-            });
-            markerEls.forEach(el => {
-              el.style.opacity = '0';
-              el.style.pointerEvents = 'none';
-            });
+          loadingOverlay.classList.remove('show');
+          scanHint.style.opacity = '1';
+          arStarted = true;
 
-            selectDish(0);
-            showSwipeHintOnce();
-          };
+          swipeZone.classList.add('active');
 
-          arScene.addEventListener('loaded',   onReady, { once: true });
-          arScene.addEventListener('arReady',  onReady, { once: true });
+          alwaysVisible.forEach(el => {
+            el.style.opacity = '1';
+            el.style.pointerEvents = 'auto';
+          });
+          markerEls.forEach(el => {
+            el.style.opacity = '0';
+            el.style.pointerEvents = 'none';
+          });
 
-          // Fallback trigger for slower system architectures
-          setTimeout(onReady, 8000);
-        }, 120);
+          selectDish(0);
+          showSwipeHintOnce();
+        };
+
+        arScene.addEventListener('loaded',   onReady, { once: true });
+        arScene.addEventListener('arReady',  onReady, { once: true });
+
+        setTimeout(onReady, 8000);
 
       } catch (err) {
         console.error('Camera error:', err);
@@ -1076,19 +945,14 @@
       }
     }
 
-    document.querySelector('#startBtn').addEventListener('click', (e) => {
-      e.preventDefault();
-      startAR();
-    });
-
+    /* ── ERROR OVERLAY RETRY ── */
     document.querySelector('#retryBtn').addEventListener('click', (e) => {
       e.preventDefault();
       errorOverlay.classList.remove('show');
-      startScreen.style.display  = 'flex';
-      startScreen.style.opacity  = '1';
+      startAR();
     });
 
-    /* ── AR TARGET EVENTS ── */
+    /* ── AR TARGET TRACKING EVENTS ── */
     target.addEventListener('targetFound', () => {
       if (tableModeOn) return; 
       markerEls.forEach(el => {
@@ -1108,6 +972,9 @@
     });
 
     document.addEventListener('contextmenu', e => e.preventDefault());
+
+    /* ── RUN AUTOMATICALLY ON LOAD ── */
+    window.addEventListener('DOMContentLoaded', startAR);
   </script>
 </body>
 </html>
