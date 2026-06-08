@@ -9,37 +9,26 @@
   <meta http-equiv="Permissions-Policy" content="camera=*">
   <title>AR Menu – 3D Dish Try-On</title>
 
-  <!-- Load A-Frame + MindAR eagerly so they're cached when user taps -->
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --gold: #C9A84C;
-      --gold-light: #E8C97A;
-      --gold-dim: rgba(201,168,76,0.18);
-      --gold-border: rgba(201,168,76,0.28);
-      --ink: #0A0A0A;
-      --cream: #F5F0E8;
+      --gold: #C9A84C; --gold-light: #E8C97A;
+      --gold-dim: rgba(201,168,76,0.18); --gold-border: rgba(201,168,76,0.28);
+      --ink: #0A0A0A; --cream: #F5F0E8;
       --glass-dark: rgba(6,5,4,0.72);
-      --radius: 14px;
-      --radius-pill: 100px;
+      --radius: 14px; --radius-pill: 100px;
     }
-
     html, body {
       width: 100%; height: 100%;
       font-family: 'Jost', sans-serif;
-      background: #060504;
-      overflow: hidden;
-      overscroll-behavior: none;
-      position: fixed;
+      background: #060504; overflow: hidden;
+      overscroll-behavior: none; position: fixed;
     }
-
     .a-enter-vr-button { display: none !important; }
-
     a-scene {
       position: fixed !important; top: 0 !important; left: 0 !important;
       width: 100% !important; height: 100% !important; z-index: 0 !important;
@@ -53,559 +42,231 @@
       width: 100% !important; height: 100% !important;
       object-fit: cover !important; z-index: -1 !important;
     }
-
     body::after {
-      content: '';
-      position: fixed; inset: 0;
+      content: ''; position: fixed; inset: 0;
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
       pointer-events: none; z-index: 5; opacity: 0.6;
     }
 
-    /* ── START SCREEN ── */
+    /* START SCREEN */
     #startScreen {
-      position: fixed; inset: 0;
-      background: #060504;
+      position: fixed; inset: 0; background: #060504;
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
       z-index: 999; padding: 40px 32px;
       transition: opacity 0.4s ease;
     }
     #startScreen::before, #startScreen::after {
-      content: '';
-      position: absolute;
-      width: 60px; height: 60px;
-      border-color: var(--gold-border);
-      border-style: solid;
+      content: ''; position: absolute; width: 60px; height: 60px;
+      border-color: var(--gold-border); border-style: solid;
     }
     #startScreen::before { top: 24px; left: 24px; border-width: 1px 0 0 1px; }
     #startScreen::after  { bottom: 24px; right: 24px; border-width: 0 1px 1px 0; }
-
-    .start-inner {
-      display: flex; flex-direction: column;
-      align-items: center; gap: 0;
-      max-width: 320px; width: 100%;
-    }
-    .start-ornament {
-      display: flex; align-items: center; gap: 12px;
-      margin-bottom: 28px;
-    }
-    .start-ornament-line {
-      width: 40px; height: 1px;
-      background: linear-gradient(90deg, transparent, var(--gold));
-    }
-    .start-ornament-line.right {
-      background: linear-gradient(90deg, var(--gold), transparent);
-    }
-    .start-ornament-diamond {
-      width: 6px; height: 6px;
-      background: var(--gold);
-      transform: rotate(45deg);
-    }
-    #startScreen img.start-logo {
-      width: 72px; height: 72px;
-      object-fit: contain;
-      margin-bottom: 20px;
-      filter: brightness(0) invert(1) sepia(1) saturate(0.6);
-    }
-    .start-eyebrow {
-      font-size: 10px; font-weight: 400;
-      letter-spacing: 0.22em;
-      color: var(--gold);
-      text-transform: uppercase;
-      margin-bottom: 14px;
-    }
-    #startScreen h1 {
-      font-family: 'Cormorant Garamond', serif;
-      color: var(--cream);
-      font-size: 36px; font-weight: 300;
-      letter-spacing: 0.01em; line-height: 1.15;
-      text-align: center; margin-bottom: 20px;
-    }
+    .start-inner { display: flex; flex-direction: column; align-items: center; gap: 0; max-width: 320px; width: 100%; }
+    .start-ornament { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+    .start-ornament-line { width: 40px; height: 1px; background: linear-gradient(90deg, transparent, var(--gold)); }
+    .start-ornament-line.right { background: linear-gradient(90deg, var(--gold), transparent); }
+    .start-ornament-diamond { width: 6px; height: 6px; background: var(--gold); transform: rotate(45deg); }
+    #startScreen img.start-logo { width: 72px; height: 72px; object-fit: contain; margin-bottom: 20px; filter: brightness(0) invert(1) sepia(1) saturate(0.6); }
+    .start-eyebrow { font-size: 10px; font-weight: 400; letter-spacing: 0.22em; color: var(--gold); text-transform: uppercase; margin-bottom: 14px; }
+    #startScreen h1 { font-family: 'Cormorant Garamond', serif; color: var(--cream); font-size: 36px; font-weight: 300; letter-spacing: 0.01em; line-height: 1.15; text-align: center; margin-bottom: 20px; }
     #startScreen h1 em { font-style: italic; color: var(--gold-light); }
-    #startScreen p {
-      color: rgba(245,240,232,0.42);
-      font-size: 13px; font-weight: 300;
-      text-align: center; line-height: 1.75;
-      margin-bottom: 36px; letter-spacing: 0.03em;
-    }
+    #startScreen p { color: rgba(245,240,232,0.42); font-size: 13px; font-weight: 300; text-align: center; line-height: 1.75; margin-bottom: 36px; letter-spacing: 0.03em; }
     #startBtn {
-      position: relative;
-      padding: 16px 42px;
-      font-family: 'Jost', sans-serif;
-      font-size: 12px; font-weight: 400;
+      position: relative; padding: 16px 42px;
+      font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 400;
       letter-spacing: 0.18em; text-transform: uppercase;
-      border: 1px solid var(--gold-border);
-      border-radius: var(--radius-pill);
-      background: transparent;
-      color: var(--gold-light);
+      border: 1px solid var(--gold-border); border-radius: var(--radius-pill);
+      background: transparent; color: var(--gold-light);
       cursor: pointer; overflow: hidden;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent; touch-action: manipulation;
       transition: color 0.3s, border-color 0.3s;
     }
     #startBtn::before {
-      content: '';
-      position: absolute; inset: 0;
-      background: var(--gold);
-      transform: scaleX(0);
-      transform-origin: left;
-      transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
-      z-index: -1;
+      content: ''; position: absolute; inset: 0;
+      background: var(--gold); transform: scaleX(0); transform-origin: left;
+      transition: transform 0.4s cubic-bezier(0.4,0,0.2,1); z-index: -1;
     }
     #startBtn:active::before { transform: scaleX(1); }
     #startBtn:active { color: var(--ink); border-color: var(--gold); }
+    .start-footer { position: absolute; bottom: 36px; display: flex; align-items: center; gap: 8px; }
+    .start-footer span { font-size: 10px; letter-spacing: 0.12em; color: rgba(245,240,232,0.2); text-transform: uppercase; }
+    .start-footer-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--gold-border); }
 
-    .start-footer {
-      position: absolute; bottom: 36px;
-      display: flex; align-items: center; gap: 8px;
-    }
-    .start-footer span {
-      font-size: 10px; letter-spacing: 0.12em;
-      color: rgba(245,240,232,0.2); text-transform: uppercase;
-    }
-    .start-footer-dot {
-      width: 3px; height: 3px;
-      border-radius: 50%; background: var(--gold-border);
-    }
-
-    /* ── LOADING ── */
+    /* LOADING */
     #loadingOverlay {
-      position: fixed; inset: 0;
-      background: #060504;
+      position: fixed; inset: 0; background: #060504;
       display: none; flex-direction: column;
       align-items: center; justify-content: center;
       z-index: 998; gap: 24px;
     }
     #loadingOverlay.show { display: flex; }
-
-    .loading-ring {
-      position: relative; width: 56px; height: 56px;
-    }
-    .loading-ring svg {
-      position: absolute; inset: 0;
-      animation: spin-slow 2.4s linear infinite;
-    }
-    .loading-ring-diamond {
-      position: absolute; inset: 0;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .loading-ring-diamond::after {
-      content: '';
-      width: 8px; height: 8px;
-      background: var(--gold); transform: rotate(45deg);
-    }
-    #loadingStatus {
-      color: rgba(245,240,232,0.4);
-      font-size: 11px; letter-spacing: 0.2em;
-      text-transform: uppercase;
-      transition: opacity 0.3s;
-    }
-
+    .loading-ring { position: relative; width: 56px; height: 56px; }
+    .loading-ring svg { position: absolute; inset: 0; animation: spin-slow 2.4s linear infinite; }
+    .loading-ring-diamond { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+    .loading-ring-diamond::after { content: ''; width: 8px; height: 8px; background: var(--gold); transform: rotate(45deg); }
+    #loadingStatus { color: rgba(245,240,232,0.4); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; }
     @keyframes spin-slow { to { transform: rotate(360deg); } }
     @keyframes spin      { to { transform: rotate(360deg); } }
 
-    /* ── MINI MODEL LOADER ── */
+    /* MINI MODEL LOADER */
     #modelLoader {
-      position: fixed; top: 56px; left: 50%;
-      transform: translateX(-50%);
+      position: fixed; top: 56px; left: 50%; transform: translateX(-50%);
       background: var(--glass-dark);
-      backdrop-filter: blur(16px) saturate(1.4);
-      -webkit-backdrop-filter: blur(16px) saturate(1.4);
-      border: 1px solid var(--gold-border);
-      border-radius: var(--radius-pill);
-      padding: 7px 18px;
-      color: rgba(245,240,232,0.6);
-      font-size: 10px; letter-spacing: 0.14em;
-      text-transform: uppercase;
-      z-index: 300;
-      display: none; align-items: center; gap: 9px;
+      backdrop-filter: blur(16px) saturate(1.4); -webkit-backdrop-filter: blur(16px) saturate(1.4);
+      border: 1px solid var(--gold-border); border-radius: var(--radius-pill);
+      padding: 7px 18px; color: rgba(245,240,232,0.6);
+      font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+      z-index: 300; display: none; align-items: center; gap: 9px;
     }
     #modelLoader.show { display: flex; }
-    .mini-spin {
-      width: 11px; height: 11px;
-      border: 1.5px solid rgba(201,168,76,0.2);
-      border-top-color: var(--gold);
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-    }
+    .mini-spin { width: 11px; height: 11px; border: 1.5px solid rgba(201,168,76,0.2); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.7s linear infinite; }
 
-    /* ── ERROR ── */
-    #errorOverlay {
-      position: fixed; inset: 0;
-      background: #060504;
-      display: none; flex-direction: column;
-      align-items: center; justify-content: center;
-      z-index: 998; gap: 16px; padding: 36px;
-      text-align: center;
-    }
+    /* ERROR */
+    #errorOverlay { position: fixed; inset: 0; background: #060504; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 998; gap: 16px; padding: 36px; text-align: center; }
     #errorOverlay.show { display: flex; }
-    .err-icon-wrap {
-      width: 72px; height: 72px;
-      border: 1px solid rgba(255,107,107,0.25);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 30px; margin-bottom: 8px;
-    }
-    #errorOverlay h2 {
-      font-family: 'Cormorant Garamond', serif;
-      color: #ff8080; font-size: 22px; font-weight: 400;
-    }
-    #errorOverlay p {
-      color: rgba(245,240,232,0.4);
-      font-size: 13px; line-height: 1.8; font-weight: 300;
-      max-width: 300px;
-    }
-    #retryBtn {
-      margin-top: 8px; padding: 12px 28px;
-      font-family: 'Jost', sans-serif;
-      font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
-      border: 1px solid var(--gold-border); border-radius: var(--radius-pill);
-      background: transparent; color: var(--gold);
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
-    }
+    .err-icon-wrap { width: 72px; height: 72px; border: 1px solid rgba(255,107,107,0.25); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; margin-bottom: 8px; }
+    #errorOverlay h2 { font-family: 'Cormorant Garamond', serif; color: #ff8080; font-size: 22px; font-weight: 400; }
+    #errorOverlay p { color: rgba(245,240,232,0.4); font-size: 13px; line-height: 1.8; font-weight: 300; max-width: 300px; }
+    #retryBtn { margin-top: 8px; padding: 12px 28px; font-family: 'Jost', sans-serif; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; border: 1px solid var(--gold-border); border-radius: var(--radius-pill); background: transparent; color: var(--gold); cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 
-    /* ── LOGO (in-AR) ── */
-    #logo {
-      position: fixed; top: 14px; left: 14px;
-      width: 72px; z-index: 200;
-      opacity: 0; pointer-events: none;
-      transition: opacity 0.5s ease;
-      filter: brightness(0) invert(1) sepia(1) saturate(0.5);
-    }
+    /* IN-AR LOGO */
+    #logo { position: fixed; top: 14px; left: 14px; width: 72px; z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.5s ease; filter: brightness(0) invert(1) sepia(1) saturate(0.5); }
 
-    /* ── DISH LABEL ── */
+    /* DISH LABEL */
     #dishLabel {
-      position: fixed; top: 14px; left: 50%;
-      transform: translateX(-50%);
+      position: fixed; top: 14px; left: 50%; transform: translateX(-50%);
       background: var(--glass-dark);
-      backdrop-filter: blur(16px) saturate(1.4);
-      -webkit-backdrop-filter: blur(16px) saturate(1.4);
-      border: 1px solid var(--gold-border);
-      border-radius: var(--radius-pill);
+      backdrop-filter: blur(16px) saturate(1.4); -webkit-backdrop-filter: blur(16px) saturate(1.4);
+      border: 1px solid var(--gold-border); border-radius: var(--radius-pill);
       padding: 9px 22px;
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 15px; font-weight: 400;
-      color: var(--gold-light); letter-spacing: 0.06em;
-      white-space: nowrap; z-index: 200;
-      opacity: 0; pointer-events: none;
-      transition: opacity 0.5s ease;
-      max-width: calc(100vw - 200px);
-      overflow: hidden; text-overflow: ellipsis;
+      font-family: 'Cormorant Garamond', serif; font-size: 15px; font-weight: 400;
+      color: var(--gold-light); letter-spacing: 0.06em; white-space: nowrap;
+      z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.5s ease;
+      max-width: calc(100vw - 200px); overflow: hidden; text-overflow: ellipsis;
     }
-    #dishLabel .label-dot {
-      display: inline-block;
-      width: 5px; height: 5px;
-      background: var(--gold); border-radius: 50%;
-      margin-right: 10px; vertical-align: middle;
-      position: relative; top: -1px;
-    }
+    #dishLabel .label-dot { display: inline-block; width: 5px; height: 5px; background: var(--gold); border-radius: 50%; margin-right: 10px; vertical-align: middle; position: relative; top: -1px; }
 
-    /* ── CAROUSEL ── */
+    /* CAROUSEL */
     #dishCarousel {
-      position: fixed; bottom: 20px; left: 50%;
-      transform: translateX(-50%);
-      display: flex; gap: 6px; flex-wrap: nowrap;
-      overflow-x: auto;
-      max-width: calc(100vw - 20px);
-      padding: 10px 16px;
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      display: flex; gap: 6px; flex-wrap: nowrap; overflow-x: auto;
+      max-width: calc(100vw - 20px); padding: 10px 16px;
       background: var(--glass-dark);
-      backdrop-filter: blur(20px) saturate(1.6);
-      -webkit-backdrop-filter: blur(20px) saturate(1.6);
-      border: 1px solid var(--gold-border);
-      border-radius: 60px;
-      scrollbar-width: none;
-      -webkit-overflow-scrolling: touch;
-      z-index: 150;
-      opacity: 0; pointer-events: none;
-      transition: opacity 0.5s ease;
+      backdrop-filter: blur(20px) saturate(1.6); -webkit-backdrop-filter: blur(20px) saturate(1.6);
+      border: 1px solid var(--gold-border); border-radius: 60px;
+      scrollbar-width: none; -webkit-overflow-scrolling: touch;
+      z-index: 150; opacity: 0; pointer-events: none; transition: opacity 0.5s ease;
     }
     #dishCarousel::-webkit-scrollbar { display: none; }
-
-    .dish-thumb {
-      display: flex; flex-direction: column;
-      align-items: center; gap: 5px;
-      cursor: pointer; flex-shrink: 0;
-      padding: 4px 6px; border-radius: 50px;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
-      transition: background 0.25s;
-    }
+    .dish-thumb { display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; flex-shrink: 0; padding: 4px 6px; border-radius: 50px; -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: background 0.25s; }
     .dish-thumb:active { transform: scale(0.92); }
     .dish-thumb.active { background: var(--gold-dim); }
-
     .thumb-img-wrap { position: relative; width: 50px; height: 50px; }
-    .dish-thumb img {
-      width: 50px; height: 50px;
-      object-fit: cover; border-radius: 50%;
-      border: 1.5px solid rgba(201,168,76,0.15);
-      transition: border-color 0.25s, transform 0.25s;
-      -webkit-user-drag: none;
-      user-select: none; pointer-events: none; display: block;
-    }
+    .dish-thumb img { width: 50px; height: 50px; object-fit: cover; border-radius: 50%; border: 1.5px solid rgba(201,168,76,0.15); transition: border-color 0.25s, transform 0.25s; -webkit-user-drag: none; user-select: none; pointer-events: none; display: block; }
     .dish-thumb.active img { border-color: var(--gold); transform: scale(1.06); }
-    .thumb-active-ring {
-      position: absolute; inset: -3px; border-radius: 50%;
-      border: 1px solid transparent; transition: border-color 0.25s;
-      pointer-events: none;
-    }
+    .thumb-active-ring { position: absolute; inset: -3px; border-radius: 50%; border: 1px solid transparent; transition: border-color 0.25s; pointer-events: none; }
     .dish-thumb.active .thumb-active-ring { border-color: rgba(201,168,76,0.35); }
-    .dish-thumb span {
-      font-size: 8.5px; font-weight: 400; letter-spacing: 0.05em;
-      color: rgba(245,240,232,0.4); text-align: center;
-      max-width: 58px; line-height: 1.3;
-      transition: color 0.25s; text-transform: uppercase;
-    }
+    .dish-thumb span { font-size: 8.5px; font-weight: 400; letter-spacing: 0.05em; color: rgba(245,240,232,0.4); text-align: center; max-width: 58px; line-height: 1.3; transition: color 0.25s; text-transform: uppercase; }
     .dish-thumb.active span { color: var(--gold); }
 
-    /* ── SCAN HINT ── */
-    #scanHint {
-      position: fixed; top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      display: flex; flex-direction: column;
-      align-items: center; gap: 16px;
-      pointer-events: none; z-index: 10;
-      opacity: 0; transition: opacity 0.5s;
-    }
+    /* SCAN HINT */
+    #scanHint { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 16px; pointer-events: none; z-index: 10; opacity: 0; transition: opacity 0.5s; }
     .scan-frame { position: relative; width: 180px; height: 180px; }
-    .scan-frame::before, .scan-frame::after,
-    .scan-corner-br, .scan-corner-bl {
-      content: '';
-      position: absolute;
-      width: 28px; height: 28px;
-      border-color: rgba(201,168,76,0.55);
-      border-style: solid;
-    }
+    .scan-frame::before, .scan-frame::after, .scan-corner-br, .scan-corner-bl { content: ''; position: absolute; width: 28px; height: 28px; border-color: rgba(201,168,76,0.55); border-style: solid; }
     .scan-frame::before { top: 0; left: 0; border-width: 1px 0 0 1px; }
     .scan-frame::after  { top: 0; right: 0; border-width: 1px 1px 0 0; }
     .scan-corner-br { bottom: 0; right: 0; border-width: 0 1px 1px 0; }
     .scan-corner-bl { bottom: 0; left: 0; border-width: 0 0 1px 1px; }
-    .scan-line {
-      position: absolute; top: 0; left: 8px; right: 8px;
-      height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent);
-      animation: scanLine 2.4s ease-in-out infinite;
-    }
-    @keyframes scanLine {
-      0%, 100% { top: 8px; opacity: 0; }
-      10% { opacity: 1; }
-      90% { opacity: 1; }
-      50% { top: calc(100% - 8px); }
-    }
-    #scanHint p {
-      font-size: 11px; font-weight: 400;
-      letter-spacing: 0.18em; text-transform: uppercase;
-      color: rgba(245,240,232,0.45);
-    }
+    .scan-line { position: absolute; top: 0; left: 8px; right: 8px; height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); animation: scanLine 2.4s ease-in-out infinite; }
+    @keyframes scanLine { 0%, 100% { top: 8px; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 50% { top: calc(100% - 8px); } }
+    #scanHint p { font-size: 11px; font-weight: 400; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(245,240,232,0.45); }
 
-    /* ── SWIPE ZONE ── */
-    #swipeZone {
-      position: fixed; inset: 0;
-      z-index: 100;
-      touch-action: pan-y;
-      -webkit-tap-highlight-color: transparent;
-      pointer-events: none;
-    }
+    /* SWIPE */
+    #swipeZone { position: fixed; inset: 0; z-index: 100; touch-action: pan-y; -webkit-tap-highlight-color: transparent; pointer-events: none; }
     #swipeZone.active { pointer-events: auto; }
-
-    /* ── SWIPE HINT ── */
-    #swipeHint {
-      position: fixed; top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      display: flex; align-items: center; gap: 24px;
-      pointer-events: none; z-index: 200;
-      opacity: 0;
-      transition: opacity 0.4s ease;
-    }
+    #swipeHint { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 24px; pointer-events: none; z-index: 200; opacity: 0; transition: opacity 0.4s ease; }
     #swipeHint.show { opacity: 1; }
-    #swipeHint.fade { opacity: 0; }
+    .swipe-arrow { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .swipe-arrow-icon { width: 44px; height: 44px; border: 1px solid var(--gold-border); border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--glass-dark); }
+    .swipe-arrow-icon svg { width: 18px; height: 18px; stroke: var(--gold); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+    .swipe-arrow span { font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(245,240,232,0.4); }
 
-    .swipe-arrow {
-      display: flex; flex-direction: column;
-      align-items: center; gap: 6px;
-    }
-    .swipe-arrow-icon {
-      width: 44px; height: 44px;
-      border: 1px solid var(--gold-border);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      background: var(--glass-dark);
-    }
-    .swipe-arrow-icon svg {
-      width: 18px; height: 18px;
-      stroke: var(--gold); fill: none;
-      stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;
-    }
-    .swipe-arrow span {
-      font-size: 9px; letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: rgba(245,240,232,0.4);
-    }
-
-    /* ── DISH COUNTER ── */
-    #dishCounter {
-      position: fixed; top: 54px; left: 50%;
-      transform: translateX(-50%);
-      background: var(--glass-dark);
-      border: 1px solid var(--gold-border);
-      border-radius: var(--radius-pill);
-      padding: 5px 16px;
-      display: flex; align-items: center; gap: 8px;
-      z-index: 200;
-      opacity: 0; pointer-events: none;
-      transition: opacity 0.4s ease;
-    }
+    /* COUNTER */
+    #dishCounter { position: fixed; top: 54px; left: 50%; transform: translateX(-50%); background: var(--glass-dark); border: 1px solid var(--gold-border); border-radius: var(--radius-pill); padding: 5px 16px; display: flex; align-items: center; gap: 8px; z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
     #dishCounter.visible { opacity: 1; }
+    .counter-dot { width: 4px; height: 4px; border-radius: 50%; background: rgba(201,168,76,0.25); transition: background 0.25s, transform 0.25s; flex-shrink: 0; }
+    .counter-dot.active { background: var(--gold); transform: scale(1.4); }
 
-    .counter-dot {
-      width: 4px; height: 4px;
-      border-radius: 50%;
-      background: rgba(201,168,76,0.25);
-      transition: background 0.25s, transform 0.25s;
-      flex-shrink: 0;
-    }
-    .counter-dot.active {
-      background: var(--gold);
-      transform: scale(1.4);
-    }
-
-    /* ── SWIPE FLASH ── */
-    #swipeFlash {
-      position: fixed; inset: 0;
-      pointer-events: none; z-index: 99;
-      opacity: 0;
-    }
+    /* SWIPE FLASH */
+    #swipeFlash { position: fixed; inset: 0; pointer-events: none; z-index: 99; opacity: 0; }
     #swipeFlash.left  { background: linear-gradient(to right, rgba(201,168,76,0.06), transparent); }
     #swipeFlash.right { background: linear-gradient(to left,  rgba(201,168,76,0.06), transparent); }
-
-    @keyframes flashFade {
-      0%   { opacity: 1; }
-      100% { opacity: 0; }
-    }
+    @keyframes flashFade { 0% { opacity: 1; } 100% { opacity: 0; } }
     #swipeFlash.flash { animation: flashFade 0.35s ease-out forwards; }
 
-    /* ── SEE ON TABLE BUTTON ── */
+    /* TABLE BTN */
     #tableBtn {
-      position: fixed;
-      bottom: 108px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 160;
-      display: flex; align-items: center; gap: 9px;
-      padding: 11px 22px;
-      font-family: 'Jost', sans-serif;
-      font-size: 11px; font-weight: 400;
-      letter-spacing: 0.16em; text-transform: uppercase;
-      border: 1px solid var(--gold-border);
-      border-radius: var(--radius-pill);
+      position: fixed; bottom: 108px; left: 50%; transform: translateX(-50%);
+      z-index: 160; display: flex; align-items: center; gap: 9px;
+      padding: 11px 22px; font-family: 'Jost', sans-serif;
+      font-size: 11px; font-weight: 400; letter-spacing: 0.16em; text-transform: uppercase;
+      border: 1px solid var(--gold-border); border-radius: var(--radius-pill);
       background: var(--glass-dark);
-      backdrop-filter: blur(18px) saturate(1.5);
-      -webkit-backdrop-filter: blur(18px) saturate(1.5);
-      color: var(--gold-light);
-      cursor: pointer;
+      backdrop-filter: blur(18px) saturate(1.5); -webkit-backdrop-filter: blur(18px) saturate(1.5);
+      color: var(--gold-light); cursor: pointer;
       opacity: 0; pointer-events: none;
       transition: opacity 0.4s ease, background 0.25s, color 0.25s, border-color 0.25s;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
-      white-space: nowrap;
+      -webkit-tap-highlight-color: transparent; touch-action: manipulation; white-space: nowrap;
     }
-    #tableBtn.visible        { opacity: 1; pointer-events: auto; }
-    #tableBtn.table-active   {
-      background: rgba(201,168,76,0.15);
-      border-color: var(--gold);
-      color: var(--gold);
-    }
-    #tableBtn svg {
-      width: 15px; height: 15px;
-      stroke: currentColor; fill: none;
-      stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round;
-      flex-shrink: 0;
-      transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
-    }
+    #tableBtn.visible      { opacity: 1; pointer-events: auto; }
+    #tableBtn.table-active { background: rgba(201,168,76,0.15); border-color: var(--gold); color: var(--gold); }
+    #tableBtn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1); }
     #tableBtn.table-active svg { transform: scale(1.2) rotate(-10deg); }
 
-    /* ── TABLE BADGE ── */
-    #tableBadge {
-      position: fixed; top: 14px; right: 14px;
-      z-index: 200;
-      display: flex; align-items: center; gap: 7px;
-      padding: 7px 14px;
-      background: var(--glass-dark);
-      border: 1px solid var(--gold-border);
-      border-radius: var(--radius-pill);
-      font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
-      color: var(--gold);
-      opacity: 0; pointer-events: none;
-      transition: opacity 0.35s ease;
-    }
+    /* TABLE BADGE & SHADOW */
+    #tableBadge { position: fixed; top: 14px; right: 14px; z-index: 200; display: flex; align-items: center; gap: 7px; padding: 7px 14px; background: var(--glass-dark); border: 1px solid var(--gold-border); border-radius: var(--radius-pill); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); opacity: 0; pointer-events: none; transition: opacity 0.35s ease; }
     #tableBadge.visible { opacity: 1; }
-    .badge-pulse {
-      width: 6px; height: 6px; border-radius: 50%;
-      background: var(--gold);
-      animation: pulse 1.8s ease-in-out infinite;
-      flex-shrink: 0;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1;   transform: scale(1);   }
-      50%       { opacity: 0.4; transform: scale(0.7); }
-    }
-
-    /* ── TABLE SHADOW ── */
-    #tableShadow {
-      position: fixed;
-      bottom: 28%;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 140px; height: 28px;
-      background: radial-gradient(ellipse, rgba(0,0,0,0.38) 0%, transparent 72%);
-      border-radius: 50%;
-      pointer-events: none; z-index: 1;
-      opacity: 0;
-      transition: opacity 0.5s ease;
-    }
+    .badge-pulse { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); animation: pulse 1.8s ease-in-out infinite; flex-shrink: 0; }
+    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.7); } }
+    #tableShadow { position: fixed; bottom: 28%; left: 50%; transform: translateX(-50%); width: 140px; height: 28px; background: radial-gradient(ellipse, rgba(0,0,0,0.38) 0%, transparent 72%); border-radius: 50%; pointer-events: none; z-index: 1; opacity: 0; transition: opacity 0.5s ease; }
     #tableShadow.visible { opacity: 1; }
 
-    /* ── iOS safe area ── */
+    /* iOS safe area */
     @supports (padding-bottom: env(safe-area-inset-bottom)) {
       #dishCarousel { bottom: calc(20px + env(safe-area-inset-bottom)); }
       #tableBtn     { bottom: calc(108px + env(safe-area-inset-bottom)); }
     }
-
-    @media (max-width: 390px) {
-      .dish-thumb img { width: 42px; height: 42px; }
-      .thumb-img-wrap { width: 42px; height: 42px; }
-      #startScreen h1 { font-size: 30px; }
-    }
-
-    /* ── Landscape warning ── */
-    @media (orientation: landscape) and (max-height: 500px) {
-      #landscapeWarn { display: flex !important; }
-    }
-    #landscapeWarn {
-      display: none;
-      position: fixed; inset: 0; z-index: 9999;
-      background: #060504;
-      flex-direction: column;
-      align-items: center; justify-content: center;
-      gap: 16px; text-align: center; padding: 32px;
-    }
+    @media (max-width: 390px) { .dish-thumb img { width: 42px; height: 42px; } .thumb-img-wrap { width: 42px; height: 42px; } #startScreen h1 { font-size: 30px; } }
+    @media (orientation: landscape) and (max-height: 500px) { #landscapeWarn { display: flex !important; } }
+    #landscapeWarn { display: none; position: fixed; inset: 0; z-index: 9999; background: #060504; flex-direction: column; align-items: center; justify-content: center; gap: 16px; text-align: center; padding: 32px; }
     #landscapeWarn span { font-size: 42px; }
-    #landscapeWarn p {
-      color: rgba(245,240,232,0.5);
-      font-size: 13px; letter-spacing: 0.1em;
-      text-transform: uppercase;
+    #landscapeWarn p { color: rgba(245,240,232,0.5); font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; }
+
+    /* DEBUG PANEL */
+    #debugPanel {
+      position: fixed; bottom: 200px; left: 10px; right: 10px;
+      background: rgba(0,0,0,0.75); border: 1px solid rgba(255,255,0,0.3);
+      border-radius: 8px; padding: 8px 12px;
+      font-family: monospace; font-size: 10px; color: #ffff00;
+      z-index: 500; display: none; max-height: 120px; overflow-y: auto;
     }
+    #debugPanel.show { display: block; }
+    #debugToggle {
+      position: fixed; top: 6px; right: 14px; z-index: 600;
+      background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,0,0.3);
+      border-radius: 4px; padding: 3px 7px; font-size: 9px; color: #ffff00;
+      cursor: pointer; display: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #debugToggle.show { display: block; }
   </style>
 </head>
 <body>
 
-  <!-- ── LANDSCAPE WARNING ── -->
-  <div id="landscapeWarn">
-    <span>📱</span>
-    <p>Please rotate your device to portrait mode</p>
-  </div>
+  <div id="landscapeWarn"><span>📱</span><p>Please rotate your device to portrait mode</p></div>
 
-  <!-- ── START SCREEN ── -->
+  <!-- START SCREEN -->
   <div id="startScreen">
     <div class="start-inner">
       <img class="start-logo" src="logo1.png" onerror="this.style.display='none'" alt="Logo">
@@ -620,15 +281,13 @@
       <button id="startBtn">Activate Camera</button>
     </div>
     <div class="start-footer">
-      <span>Powered by AR</span>
-      <div class="start-footer-dot"></div>
-      <span>3D Preview</span>
-      <div class="start-footer-dot"></div>
+      <span>Powered by AR</span><div class="start-footer-dot"></div>
+      <span>3D Preview</span><div class="start-footer-dot"></div>
       <span>Live Tracking</span>
     </div>
   </div>
 
-  <!-- ── LOADING ── -->
+  <!-- LOADING -->
   <div id="loadingOverlay">
     <div class="loading-ring">
       <svg viewBox="0 0 56 56" width="56" height="56" fill="none">
@@ -640,121 +299,100 @@
     <p id="loadingStatus">Requesting camera</p>
   </div>
 
-  <!-- ── MINI MODEL LOADER ── -->
-  <div id="modelLoader">
-    <div class="mini-spin"></div>
-    <span>Loading dish</span>
-  </div>
+  <!-- MINI MODEL LOADER -->
+  <div id="modelLoader"><div class="mini-spin"></div><span>Loading dish</span></div>
 
-  <!-- ── ERROR ── -->
+  <!-- ERROR -->
   <div id="errorOverlay">
     <div class="err-icon-wrap">📵</div>
     <h2>Camera Access Denied</h2>
-    <p>
-      Please allow camera access in your browser settings and try again.<br><br>
+    <p>Please allow camera access in your browser settings and try again.<br><br>
       <strong style="color:rgba(245,240,232,0.6)">iPhone:</strong> Settings → Safari → Camera → Allow<br>
       <strong style="color:rgba(245,240,232,0.6)">Android:</strong> Settings → Apps → Browser → Camera → Allow
     </p>
     <button id="retryBtn">Retry</button>
   </div>
 
-  <!-- ── IN-AR CHROME ── -->
+  <!-- IN-AR CHROME -->
   <img src="logo1.png" id="logo" alt="Logo">
-
-  <div id="dishLabel">
-    <span class="label-dot"></span>
-    <span id="dishLabelText">Agedashi Tofu</span>
-  </div>
-
-  <!-- ── DISH COUNTER DOTS ── -->
+  <div id="dishLabel"><span class="label-dot"></span><span id="dishLabelText">Ramen</span></div>
   <div id="dishCounter"></div>
-
-  <!-- ── SWIPE HINT ── -->
   <div id="swipeHint">
-    <div class="swipe-arrow">
-      <div class="swipe-arrow-icon">
-        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-      </div>
-      <span>Prev</span>
-    </div>
-    <div class="swipe-arrow">
-      <div class="swipe-arrow-icon">
-        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-      </div>
-      <span>Next</span>
-    </div>
+    <div class="swipe-arrow"><div class="swipe-arrow-icon"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></div><span>Prev</span></div>
+    <div class="swipe-arrow"><div class="swipe-arrow-icon"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div><span>Next</span></div>
   </div>
-
-  <!-- ── SWIPE FLASH ── -->
   <div id="swipeFlash"></div>
-
-  <!-- ── SWIPE ZONE ── -->
   <div id="swipeZone"></div>
-
-  <!-- ── SEE ON TABLE BUTTON ── -->
   <button id="tableBtn" aria-label="See on table">
-    <svg viewBox="0 0 24 24">
-      <path d="M3 17 Q12 13 21 17"/>
-      <line x1="8"  y1="17" x2="7"  y2="21"/>
-      <line x1="16" y1="17" x2="17" y2="21"/>
-      <path d="M8 10 Q12 7 16 10"/>
-      <ellipse cx="12" cy="10.5" rx="4" ry="1.5"/>
-    </svg>
+    <svg viewBox="0 0 24 24"><path d="M3 17 Q12 13 21 17"/><line x1="8" y1="17" x2="7" y2="21"/><line x1="16" y1="17" x2="17" y2="21"/><path d="M8 10 Q12 7 16 10"/><ellipse cx="12" cy="10.5" rx="4" ry="1.5"/></svg>
     <span id="tableBtnText">See on Table</span>
   </button>
-
-  <!-- ── TABLE BADGE ── -->
-  <div id="tableBadge">
-    <div class="badge-pulse"></div>
-    <span>Table View</span>
-  </div>
-
-  <!-- ── TABLE SHADOW ── -->
+  <div id="tableBadge"><div class="badge-pulse"></div><span>Table View</span></div>
   <div id="tableShadow"></div>
-
-  <!-- ── SCAN HINT ── -->
   <div id="scanHint">
-    <div class="scan-frame">
-      <div class="scan-line"></div>
-      <div class="scan-corner-br"></div>
-      <div class="scan-corner-bl"></div>
-    </div>
+    <div class="scan-frame"><div class="scan-line"></div><div class="scan-corner-br"></div><div class="scan-corner-bl"></div></div>
     <p>Point at menu card</p>
   </div>
-
-  <!-- ── CAROUSEL ── -->
   <div id="dishCarousel"></div>
 
-  <!--
-    KEY FIX: a-scene is NOT in the DOM at page load.
-    It is injected dynamically only after the user taps
-    "Activate Camera". This prevents A-Frame/MindAR from
-    silently grabbing the camera on page load, which causes
-    the browser to reject the explicit getUserMedia call and
-    requires a refresh to recover.
-    The placeholder div #arSceneMount is where it will be injected.
-  -->
+  <!-- DEBUG -->
+  <button id="debugToggle">DBG</button>
+  <div id="debugPanel"></div>
+
+  <!-- a-scene injected here after user taps -->
   <div id="arSceneMount"></div>
 
   <script>
-    /* ══════════════════════════════════════
-       DISH DATA
-    ══════════════════════════════════════ */
+    /* ══════════ DISH DATA ══════════
+       FIX: scale values must be SMALL for most GLBs.
+       A scale of "11 11 11" on a marker-tracked entity
+       makes the model enormous and invisible to the camera.
+       Typical GLB units are metres — start at "0.1 0.1 0.1"
+       and adjust. The rotation "90 90 90" is also unusual;
+       most dishes need "0 0 0" or just "90 0 0".
+       ─── TUNE THESE PER MODEL ─── */
     const dishes = [
-      { name: "ramenshoyu",     folder: "ramenshoyu",     model: "ramenshoyu.glb",     thumb: "ramenshoyu.png",     scale: "11 11 11",     rotation: "90 90 90" },
-      { name: "ramenshio",      folder: "ramenshio",      model: "ramenshio.glb",      thumb: "ramenshio.png",      scale: "1.3 1.3 1.3",  rotation: "90 90 90" },
-      { name: "rameshkaramiso", folder: "rameshkaramiso", model: "rameshkaramiso.glb", thumb: "rameshkaramiso.png", scale: "1.3 1.3 1.3",  rotation: "90 90 90" },
+      {
+        name:     "Ramen Shoyu",
+        folder:   "ramenshoyu",
+        model:    "ramenshoyu.glb",
+        thumb:    "ramenshoyu.png",
+        /* Start small, increase if model is invisible */
+        scale:    "0.08 0.08 0.08",
+        /* Most food models import Y-up — try 0 0 0 first */
+        rotation: "0 0 0",
+        /* Position offset on the marker plane: "0 0 0.05" lifts it slightly */
+        position: "0 0 0.05"
+      },
+      {
+        name:     "Ramen Shio",
+        folder:   "ramenshio",
+        model:    "ramenshio.glb",
+        thumb:    "ramenshio.png",
+        scale:    "0.08 0.08 0.08",
+        rotation: "0 0 0",
+        position: "0 0 0.05"
+      },
+      {
+        name:     "Karamiso Ramen",
+        folder:   "rameshkaramiso",
+        model:    "rameshkaramiso.glb",
+        thumb:    "rameshkaramiso.png",
+        scale:    "0.08 0.08 0.08",
+        rotation: "0 0 0",
+        position: "0 0 0.05"
+      },
     ];
 
+    /* ═══ GLOBALS ═══ */
     let currentIndex   = -1;
     let arStarted      = false;
     let modelTimeout   = null;
     let swipeHintShown = false;
     let tableModeOn    = false;
-
-    // These are set after a-scene is injected
     let tableEntity, modelEntity, target, arScene;
 
+    /* ═══ DOM REFS ═══ */
     const tableBtn       = document.querySelector('#tableBtn');
     const tableBtnText   = document.querySelector('#tableBtnText');
     const tableBadge     = document.querySelector('#tableBadge');
@@ -774,11 +412,23 @@
     const swipeFlash     = document.querySelector('#swipeFlash');
     const dishCounter    = document.querySelector('#dishCounter');
     const arSceneMount   = document.querySelector('#arSceneMount');
+    const debugPanel     = document.querySelector('#debugPanel');
+    const debugToggle    = document.querySelector('#debugToggle');
 
     const alwaysVisible = [carousel, logo, dishCounter, tableBtn];
     const markerEls     = [dishLabel];
 
-    /* ── BUILD CAROUSEL ── */
+    /* ═══ DEBUG LOGGER ═══ */
+    function dbg(msg) {
+      console.log('[AR]', msg);
+      const line = document.createElement('div');
+      line.textContent = new Date().toISOString().substr(11,8) + ' ' + msg;
+      debugPanel.appendChild(line);
+      debugPanel.scrollTop = debugPanel.scrollHeight;
+    }
+    debugToggle.addEventListener('click', () => debugPanel.classList.toggle('show'));
+
+    /* ═══ BUILD CAROUSEL ═══ */
     dishes.forEach((dish, i) => {
       const thumb = document.createElement('div');
       thumb.className = 'dish-thumb' + (i === 0 ? ' active' : '');
@@ -789,13 +439,12 @@
                alt="${dish.name}" draggable="false">
           <div class="thumb-active-ring"></div>
         </div>
-        <span>${dish.name}</span>
-      `;
+        <span>${dish.name}</span>`;
       thumb.addEventListener('click', () => selectDish(i));
       carousel.appendChild(thumb);
     });
 
-    /* ── BUILD COUNTER DOTS ── */
+    /* ═══ BUILD COUNTER DOTS ═══ */
     dishes.forEach((_, i) => {
       const dot = document.createElement('div');
       dot.className = 'counter-dot' + (i === 0 ? ' active' : '');
@@ -809,89 +458,116 @@
       });
     }
 
-    /* ── SELECT DISH ── */
+    /* ═══════════════════════════════════════════════
+       SELECT DISH — the core model-loading function.
+
+       FIXES applied here:
+       1. Always setAttribute BEFORE appending to entity.
+       2. Use a fresh gltf-model attribute string each time
+          (remove + double-rAF re-set) to force A-Frame reload.
+       3. Log every step so we can see failures in debug panel.
+    ═══════════════════════════════════════════════ */
     function selectDish(index) {
       if (index === currentIndex) return;
       currentIndex = index;
       const dish = dishes[index];
+      dbg(`selectDish(${index}): ${dish.name}`);
 
       if (modelTimeout) { clearTimeout(modelTimeout); modelTimeout = null; }
 
       modelLoader.classList.add('show');
+
+      /* Step 1: clear current model so A-Frame doesn't try to diff */
       modelEntity.removeAttribute('gltf-model');
 
+      /* Step 2: wait two frames so A-Frame flushes the removal */
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          modelEntity.setAttribute('gltf-model', `3d-model/${dish.folder}/${dish.model}`);
-          modelEntity.setAttribute('scale',    dish.scale);
+          const src = `3d-model/${dish.folder}/${dish.model}`;
+          dbg(`Setting gltf-model: ${src}`);
+          dbg(`Scale: ${dish.scale}  Rot: ${dish.rotation}  Pos: ${dish.position}`);
+
+          modelEntity.setAttribute('position', dish.position || '0 0 0');
           modelEntity.setAttribute('rotation', dish.rotation);
-          modelEntity.setAttribute('position', '0 0 0');
+          modelEntity.setAttribute('scale',    dish.scale);
+          modelEntity.setAttribute('visible',  'true');
+          /* Set gltf-model last — triggers the load */
+          modelEntity.setAttribute('gltf-model', src);
         });
       });
 
-      const onModelLoaded = () => {
+      const onModelLoaded = (e) => {
+        dbg(`model-loaded OK: ${dish.model}`);
         modelLoader.classList.remove('show');
         if (modelTimeout) { clearTimeout(modelTimeout); modelTimeout = null; }
         modelEntity.removeEventListener('model-error', onModelError);
+
+        /* FIX: ensure entity is visible after load */
+        modelEntity.setAttribute('visible', 'true');
+
+        /* FIX: log bounding box so we can see if model is 0-sized */
+        try {
+          const mesh = modelEntity.getObject3D('mesh');
+          if (mesh) {
+            const box = new THREE.Box3().setFromObject(mesh);
+            const size = new THREE.Vector3();
+            box.getSize(size);
+            dbg(`BBox size: ${size.x.toFixed(3)} x ${size.y.toFixed(3)} x ${size.z.toFixed(3)}`);
+          }
+        } catch(ex) { dbg('BBox check failed: ' + ex.message); }
       };
-      const onModelError = () => {
+      const onModelError = (e) => {
+        dbg(`model-error: ${dish.model} — ${JSON.stringify(e.detail)}`);
         modelLoader.classList.remove('show');
         if (modelTimeout) { clearTimeout(modelTimeout); modelTimeout = null; }
-        console.warn('Model failed to load:', dish.model);
         modelEntity.removeEventListener('model-loaded', onModelLoaded);
       };
       modelEntity.addEventListener('model-loaded', onModelLoaded, { once: true });
       modelEntity.addEventListener('model-error',  onModelError,  { once: true });
 
-      modelTimeout = setTimeout(() => modelLoader.classList.remove('show'), 8000);
+      /* Safety fallback spinner removal */
+      modelTimeout = setTimeout(() => {
+        dbg('Model load timeout (8s) — hiding spinner');
+        modelLoader.classList.remove('show');
+      }, 8000);
 
       dishLabelText.textContent = dish.name;
 
-      document.querySelectorAll('.dish-thumb').forEach((el, i) => {
-        el.classList.toggle('active', i === index);
-      });
-      document.querySelectorAll('.dish-thumb')[index]
-        .scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-
+      document.querySelectorAll('.dish-thumb').forEach((el, i) => el.classList.toggle('active', i === index));
+      document.querySelectorAll('.dish-thumb')[index].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
       updateCounterDots(index);
 
-      if (tableModeOn) {
-        syncTableEntity(dish);
-      }
+      if (tableModeOn) syncTableEntity(dish);
     }
 
-    /* ── SYNC TABLE ENTITY ── */
+    /* ═══ SYNC TABLE ENTITY ═══ */
     function syncTableEntity(dish) {
       tableEntity.removeAttribute('gltf-model');
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          tableEntity.setAttribute('gltf-model', `3d-model/${dish.folder}/${dish.model}`);
-          const parts  = dish.scale.split(' ').map(Number);
-          const factor = 0.35;
-          tableEntity.setAttribute('scale', parts.map(v => v * factor).join(' '));
-          tableEntity.setAttribute('rotation', dish.rotation);
-        });
-      });
-      tableEntity.addEventListener('model-error', () => {
-        console.warn('Table entity model failed:', dish.model);
-      }, { once: true });
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        const src = `3d-model/${dish.folder}/${dish.model}`;
+        const parts  = dish.scale.split(' ').map(Number);
+        const factor = 2.5; /* table view is larger since no marker constraint */
+        tableEntity.setAttribute('gltf-model', src);
+        tableEntity.setAttribute('scale',    parts.map(v => v * factor).join(' '));
+        tableEntity.setAttribute('rotation', dish.rotation);
+        tableEntity.setAttribute('visible',  'true');
+      }));
+      tableEntity.addEventListener('model-loaded', () => dbg('tableEntity loaded OK'), { once: true });
+      tableEntity.addEventListener('model-error',  () => dbg('tableEntity load FAIL'), { once: true });
     }
 
-    /* ── SET TABLE MODE ── */
+    /* ═══ TABLE MODE ═══ */
     function setTableMode(on) {
       tableModeOn = on;
-
       if (on) {
         const dish = dishes[currentIndex];
-        tableEntity.setAttribute('visible', 'true');
         syncTableEntity(dish);
         modelEntity.setAttribute('visible', 'false');
         tableBtn.classList.add('table-active');
         tableBtnText.textContent = 'Back to Card';
         tableBadge.classList.add('visible');
         tableShadow.classList.add('visible');
-        dishLabel.style.opacity = '0';
-        dishLabel.style.pointerEvents = 'none';
+        dishLabel.style.opacity = '0'; dishLabel.style.pointerEvents = 'none';
         scanHint.style.opacity = '0';
       } else {
         tableEntity.setAttribute('visible', 'false');
@@ -905,45 +581,22 @@
       }
     }
 
-    tableBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      setTableMode(!tableModeOn);
-    });
+    tableBtn.addEventListener('click', (e) => { e.preventDefault(); setTableMode(!tableModeOn); });
 
-    /* ══════════════════════════════════════
-       SWIPE GESTURE HANDLER
-    ══════════════════════════════════════ */
-    let touchStartX    = 0;
-    let touchStartY    = 0;
-    let touchStartTime = 0;
-    let swipeLocked    = false;
-
-    const SWIPE_MIN_X    = 50;
-    const SWIPE_MAX_Y    = 80;
-    const SWIPE_MAX_MS   = 500;
-    const SWIPE_DEBOUNCE = 300;
+    /* ═══ SWIPE ═══ */
+    let touchStartX = 0, touchStartY = 0, touchStartTime = 0, swipeLocked = false;
+    const SWIPE_MIN_X = 50, SWIPE_MAX_Y = 80, SWIPE_MAX_MS = 500, SWIPE_DEBOUNCE = 300;
 
     swipeZone.addEventListener('touchstart', (e) => {
       const t = e.changedTouches[0];
-      touchStartX    = t.clientX;
-      touchStartY    = t.clientY;
-      touchStartTime = Date.now();
+      touchStartX = t.clientX; touchStartY = t.clientY; touchStartTime = Date.now();
     }, { passive: true });
 
     swipeZone.addEventListener('touchend', (e) => {
       if (swipeLocked) return;
-      const t     = e.changedTouches[0];
-      const dx    = t.clientX - touchStartX;
-      const dy    = t.clientY - touchStartY;
-      const dt    = Date.now() - touchStartTime;
-      const absDx = Math.abs(dx);
-      const absDy = Math.abs(dy);
-
-      if (dt > SWIPE_MAX_MS)   return;
-      if (absDx < SWIPE_MIN_X) return;
-      if (absDy > SWIPE_MAX_Y) return;
-      if (absDy > absDx * 0.9) return;
-
+      const t = e.changedTouches[0];
+      const dx = t.clientX - touchStartX, dy = t.clientY - touchStartY, dt = Date.now() - touchStartTime;
+      if (dt > SWIPE_MAX_MS || Math.abs(dx) < SWIPE_MIN_X || Math.abs(dy) > SWIPE_MAX_Y || Math.abs(dy) > Math.abs(dx) * 0.9) return;
       swipeLocked = true;
       setTimeout(() => { swipeLocked = false; }, SWIPE_DEBOUNCE);
       triggerSwipe(dx < 0 ? 'left' : 'right');
@@ -951,224 +604,234 @@
 
     function triggerSwipe(direction) {
       const total = dishes.length;
-      const next  = direction === 'left'
-        ? (currentIndex + 1) % total
-        : (currentIndex - 1 + total) % total;
-
+      const next  = direction === 'left' ? (currentIndex + 1) % total : (currentIndex - 1 + total) % total;
       swipeFlash.className = direction + ' flash';
-      swipeFlash.addEventListener('animationend', () => {
-        swipeFlash.className = '';
-      }, { once: true });
-
+      swipeFlash.addEventListener('animationend', () => { swipeFlash.className = ''; }, { once: true });
       selectDish(next);
     }
 
     function showSwipeHintOnce() {
       if (swipeHintShown) return;
       swipeHintShown = true;
-      setTimeout(() => {
-        swipeHint.classList.add('show');
-        setTimeout(() => swipeHint.classList.remove('show'), 2500);
-      }, 1200);
+      setTimeout(() => { swipeHint.classList.add('show'); setTimeout(() => swipeHint.classList.remove('show'), 2500); }, 1200);
     }
 
-    /* ══════════════════════════════════════
-       INJECT a-scene DYNAMICALLY
-       This is the core fix: the scene is built
-       and inserted into the DOM only after the
-       user has tapped the button. This ensures
-       MindAR never touches the camera before
-       the user grants permission via our flow.
-    ══════════════════════════════════════ */
+    /* ═══════════════════════════════════════════════
+       INJECT A-SCENE DYNAMICALLY
+       KEY FIX: scene is built and inserted into DOM
+       only AFTER the user taps the button.
+       This prevents MindAR from silently grabbing the
+       camera on page load (which breaks getUserMedia).
+
+       Additional model-visibility fixes in the HTML:
+       • modelEntity has visible="true" explicitly
+       • a-assets has a short crossOrigin attribute
+         (some servers require this for GLB CORS)
+       • we rely on targetFound/targetLost to control
+         the LABEL only — the model entity itself stays
+         visible always (MindAR hides the whole target
+         group when the marker is lost).
+    ═══════════════════════════════════════════════ */
     function injectARScene() {
-      const sceneHTML = `
-        <a-scene
-          id="arScene"
-          mindar-image="imageTargetSrc: ./targets/card.mind;
-                        filterMinCF: 0.1;
-                        filterBeta: 10;
-                        missTolerance: 10;
-                        warmupTolerance: 2;
-                        maxTrack: 1;
-                        uiLoading: no;
-                        uiError: no;
-                        uiScanning: no"
-          renderer="colorManagement: true;
-                    antialias: false;
-                    logarithmicDepthBuffer: false;
-                    precision: mediump;
-                    physicallyCorrectLights: true"
-          loading-screen="enabled: false"
-          vr-mode-ui="enabled: false"
-          xr-mode-ui="enabled: false"
-          device-orientation-permission-ui="enabled: false">
+      dbg('Injecting a-scene into DOM');
 
-          <a-assets timeout="30000">
-            <a-asset-item id="preload0" src="3d-model/KaramisoRamen/KaramisoRamen.glb"></a-asset-item>
-          </a-assets>
+      const scene = document.createElement('a-scene');
+      scene.id = 'arScene';
 
-          <a-light type="ambient"     color="#ffffff" intensity="1.8"></a-light>
-          <a-light type="directional" color="#ffffff" intensity="1.6"  position="1 3 2"></a-light>
-          <a-light type="directional" color="#ffe9c0" intensity="1.0"  position="-2 2 -1"></a-light>
-          <a-light type="directional" color="#cce8ff" intensity="0.6"  position="0 -1 2"></a-light>
-          <a-light type="point"       color="#fff5e0" intensity="1.2"  position="0 1.5 1" distance="4" decay="2"></a-light>
+      /* ── MindAR attributes ── */
+      scene.setAttribute('mindar-image',
+        'imageTargetSrc: ./targets/card.mind; ' +
+        'filterMinCF: 0.1; filterBeta: 10; ' +
+        'missTolerance: 10; warmupTolerance: 2; ' +
+        'maxTrack: 1; ' +
+        'uiLoading: no; uiError: no; uiScanning: no');
 
-          <a-camera position="0 0 0" look-controls="enabled: false">
-            <a-entity
-              id="tableEntity"
-              position="0 -0.55 -1.4"
-              rotation="0 0 0"
-              scale="1 1 1"
-              gltf-model=""
-              visible="false">
-            </a-entity>
-          </a-camera>
+      scene.setAttribute('renderer',
+        'colorManagement: true; antialias: false; ' +
+        'logarithmicDepthBuffer: false; precision: mediump; ' +
+        'physicallyCorrectLights: true');
 
-          <a-entity id="target1" mindar-image-target="targetIndex: 0">
-            <a-entity
-              id="modelEntity"
-              position="0 0 0"
-              rotation="0 0 0"
-              scale="1 1 1"
-              gltf-model="">
-            </a-entity>
+      scene.setAttribute('loading-screen', 'enabled: false');
+      scene.setAttribute('vr-mode-ui',     'enabled: false');
+      scene.setAttribute('xr-mode-ui',     'enabled: false');
+      scene.setAttribute('device-orientation-permission-ui', 'enabled: false');
+
+      /* ── Build inner HTML ── */
+      scene.innerHTML = `
+        <a-assets timeout="15000">
+          <!-- Preload the first model so it's cached -->
+          <a-asset-item id="preload0" src="3d-model/${dishes[0].folder}/${dishes[0].model}"></a-asset-item>
+        </a-assets>
+
+        <!-- Lights -->
+        <a-light type="ambient"     color="#ffffff" intensity="2.0"></a-light>
+        <a-light type="directional" color="#ffffff" intensity="1.8" position="1 3 2"></a-light>
+        <a-light type="directional" color="#ffe9c0" intensity="1.2" position="-2 2 -1"></a-light>
+        <a-light type="directional" color="#cce8ff" intensity="0.8" position="0 -1 2"></a-light>
+        <a-light type="point"       color="#fff5e0" intensity="1.5" position="0 1.5 1" distance="6" decay="2"></a-light>
+
+        <!--
+          TABLE ENTITY — parented to the camera so it floats
+          in front of the user when "See on Table" is active.
+          position="0 -0.55 -1.4" = slightly below eye level,
+          1.4 m in front. visible="false" until activated.
+        -->
+        <a-camera position="0 0 0" look-controls="enabled: false">
+          <a-entity
+            id="tableEntity"
+            position="0 -0.55 -1.4"
+            rotation="0 0 0"
+            scale="1 1 1"
+            gltf-model=""
+            visible="false">
           </a-entity>
-        </a-scene>
+        </a-camera>
+
+        <!--
+          MARKER TARGET — MindAR renders the model entity
+          on top of the detected card marker.
+          visible="true" is set explicitly — MindAR manages
+          the PARENT group's visibility, not the child entity.
+        -->
+        <a-entity id="target1" mindar-image-target="targetIndex: 0">
+          <a-entity
+            id="modelEntity"
+            position="${dishes[0].position || '0 0 0'}"
+            rotation="${dishes[0].rotation}"
+            scale="${dishes[0].scale}"
+            gltf-model=""
+            visible="true">
+          </a-entity>
+        </a-entity>
       `;
 
-      arSceneMount.innerHTML = sceneHTML;
+      arSceneMount.appendChild(scene);
+      dbg('a-scene appended to DOM');
 
-      // Resolve element refs now that scene is in the DOM
-      arScene     = document.querySelector('#arScene');
-      modelEntity = document.querySelector('#modelEntity');
-      tableEntity = document.querySelector('#tableEntity');
-      target      = document.querySelector('#target1');
+      /* Resolve entity refs */
+      arScene     = scene;
+      modelEntity = scene.querySelector('#modelEntity');
+      tableEntity = scene.querySelector('#tableEntity');
+      target      = scene.querySelector('#target1');
 
-      // Force playsinline on A-Frame's injected <video> (iOS Safari requirement)
+      /* Force playsinline on A-Frame's injected <video> */
       const videoObserver = new MutationObserver(() => {
-        const vid = arScene.querySelector('video');
+        const vid = scene.querySelector('video');
         if (vid) {
           vid.setAttribute('playsinline', '');
           vid.setAttribute('webkit-playsinline', '');
           vid.setAttribute('muted', '');
           vid.muted = true;
+          dbg('Video element patched (playsinline + muted)');
           videoObserver.disconnect();
         }
       });
-      videoObserver.observe(arScene, { childList: true, subtree: true });
+      videoObserver.observe(scene, { childList: true, subtree: true });
 
-      // Bind AR target events
+      /* Marker found/lost → only controls the label UI */
       target.addEventListener('targetFound', () => {
+        dbg('targetFound');
         if (tableModeOn) return;
-        markerEls.forEach(el => {
-          el.style.opacity = '1';
-          el.style.pointerEvents = 'auto';
-        });
+        markerEls.forEach(el => { el.style.opacity = '1'; el.style.pointerEvents = 'auto'; });
         scanHint.style.opacity = '0';
       });
-
       target.addEventListener('targetLost', () => {
+        dbg('targetLost');
         if (tableModeOn) return;
-        markerEls.forEach(el => {
-          el.style.opacity = '0';
-          el.style.pointerEvents = 'none';
-        });
+        markerEls.forEach(el => { el.style.opacity = '0'; el.style.pointerEvents = 'none'; });
         scanHint.style.opacity = '1';
       });
 
-      return arScene;
+      /* Log A-Frame scene events */
+      scene.addEventListener('loaded',  () => dbg('a-scene loaded'));
+      scene.addEventListener('arReady', () => dbg('arReady'));
+      scene.addEventListener('arError', (e) => dbg('arError: ' + JSON.stringify(e.detail)));
+
+      return scene;
     }
 
-    /* ══════════════════════════════════════
+    /* ═══════════════════════════════════════════════
        START AR
-    ══════════════════════════════════════ */
+    ═══════════════════════════════════════════════ */
     async function startAR() {
       if (arStarted) return;
 
       startScreen.style.opacity = '0';
       setTimeout(() => { startScreen.style.display = 'none'; }, 400);
-
       loadingOverlay.classList.add('show');
       loadingStatus.textContent = 'Requesting camera';
 
+      /* Show debug toggle after AR starts */
+      debugToggle.classList.add('show');
+
       try {
+        dbg('Calling getUserMedia');
+
         /*
-          Step 1: Request camera permission FIRST, before touching A-Frame.
-          We do NOT stop this stream — instead we let MindAR reuse it.
-          Stopping and reopening causes a "camera busy" black screen on
-          many Android devices and is the primary reason a refresh was needed.
+          Request camera permission FIRST — before A-Frame exists.
+          Using 'ideal' (not 'exact') avoids OverconstrainedError on iOS.
         */
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: 'environment' } },
+          video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
           audio: false
         });
+        dbg(`Camera stream OK — tracks: ${stream.getTracks().length}`);
 
-        // Stream acquired — now we can safely inject and start the AR scene
         loadingStatus.textContent = 'Initialising AR';
 
         /*
-          Step 2: Inject the a-scene into the DOM.
-          MindAR will internally call getUserMedia again. We stop our
-          test stream just before injection so the camera is free.
-          One brief stop at this point is safe because the permission
-          is already granted; MindAR's own request will succeed immediately.
+          Stop our probe stream before MindAR opens its own.
+          A 150 ms gap gives the OS time to fully release the track.
+          Without this gap, Android sometimes reports "camera busy".
         */
-        stream.getTracks().forEach(t => t.stop());
+        stream.getTracks().forEach(t => { t.stop(); dbg(`Stopped probe track: ${t.label}`); });
+        await new Promise(r => setTimeout(r, 150));
 
-        // Small delay to let the OS release the camera track before MindAR grabs it
-        await new Promise(resolve => setTimeout(resolve, 120));
-
+        /* Inject and start the scene */
         const scene = injectARScene();
 
         let readyFired = false;
-
-        const onReady = () => {
+        const onReady = (evt) => {
           if (readyFired) return;
           readyFired = true;
+          dbg(`onReady fired by: ${evt ? evt.type : 'fallback'}`);
 
           loadingOverlay.classList.remove('show');
           scanHint.style.opacity = '1';
           arStarted = true;
-
           swipeZone.classList.add('active');
 
-          alwaysVisible.forEach(el => {
-            el.style.opacity = '1';
-            el.style.pointerEvents = 'auto';
-          });
-          markerEls.forEach(el => {
-            el.style.opacity = '0';
-            el.style.pointerEvents = 'none';
-          });
+          alwaysVisible.forEach(el => { el.style.opacity = '1'; el.style.pointerEvents = 'auto'; });
+          markerEls.forEach(el => { el.style.opacity = '0'; el.style.pointerEvents = 'none'; });
 
-          selectDish(0);
-          showSwipeHintOnce();
+          /* Load first dish — slight delay so A-Frame has settled */
+          setTimeout(() => {
+            dbg('Selecting first dish after ready');
+            selectDish(0);
+            showSwipeHintOnce();
+          }, 300);
         };
 
         scene.addEventListener('loaded',   onReady, { once: true });
         scene.addEventListener('arReady',  onReady, { once: true });
 
-        // Fallback: if neither event fires within 10 s, proceed anyway
-        setTimeout(onReady, 10000);
+        /* Fallback: fire onReady after 10 s no matter what */
+        setTimeout(() => onReady(null), 10000);
 
       } catch (err) {
-        console.error('Camera error:', err);
+        dbg(`Camera error: ${err.name} — ${err.message}`);
         loadingOverlay.classList.remove('show');
         errorOverlay.classList.add('show');
       }
     }
 
-    /* ── BUTTON HANDLERS ── */
-    document.querySelector('#startBtn').addEventListener('click', (e) => {
-      e.preventDefault();
-      startAR();
-    });
-
+    /* ═══ BUTTONS ═══ */
+    document.querySelector('#startBtn').addEventListener('click', (e) => { e.preventDefault(); startAR(); });
     document.querySelector('#retryBtn').addEventListener('click', (e) => {
       e.preventDefault();
       errorOverlay.classList.remove('show');
-      startScreen.style.display  = 'flex';
-      startScreen.style.opacity  = '1';
+      startScreen.style.display = 'flex';
+      startScreen.style.opacity = '1';
     });
 
     document.addEventListener('contextmenu', e => e.preventDefault());
